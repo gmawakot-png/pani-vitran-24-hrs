@@ -341,7 +341,7 @@
             <thead>
                 <tr>
                     <th style="width: 45px;" class="info-col">S.No</th>
-                    <th class="info-col">नाम</th>
+                    <th class="info-col" style="min-width: 150px;">नाम</th>
                     <th class="info-col">बीघा</th>
                     <th class="red-txt">मिनट</th>
                     <th class="red-txt">घंटे /मिनट</th>
@@ -415,7 +415,7 @@
 </div>
 
 <script>
-    // 🌟 आपकी नई Google Sheet का Web App URL 🌟
+    // 🌟 आपकी Google Sheet का Web App URL 🌟
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzltvn_3wYy7YJf7Oj3wHi61Kv4VnRI_6KQIY_sPqqVJvEcz4O2sfFJULrwRvE6HWxmUQ/exec";
 
     let isAdmin = false;
@@ -546,7 +546,6 @@
             
             if (data && data.length > 1) {
                 initialData = [];
-                // Row 1 (Header) को छोड़कर बाकी सभी Rows से डेटा पढ़ें
                 for (let i = 1; i < data.length; i++) {
                     let row = data[i];
                     if (row[1] && row[1].toString().trim() !== "") {
@@ -652,7 +651,7 @@
                 tr.innerHTML = `
                     <td class="info-col">${index + 1}</td>
                     <td class="info-col" style="text-align: left;">
-                        <input type="text" class="clean-input" value="${row.name}" oninput="updateData(${index}, 'name', this.value)" style="width:100%;">
+                        <input type="text" class="clean-input" value="${row.name}" oninput="updateData(${index}, 'name', this.value)" style="min-width: 140px; text-align: left;">
                     </td>
                     <td class="info-col">
                         <input type="number" class="clean-input" value="${row.bigha}" step="0.1" style="width:55px; text-align:center;" oninput="updateData(${index}, 'bigha', parseFloat(this.value)||0)">
@@ -683,7 +682,7 @@
             } else {
                 tr.innerHTML = `
                     <td class="info-col">${index + 1}</td>
-                    <td class="info-col" style="text-align: left; font-weight:bold;">${row.name}</td>
+                    <td class="info-col" style="text-align: left; font-weight:bold; min-width: 140px;">${row.name}</td>
                     <td class="info-col">${row.bigha}</td>
                     <td class="col-min">0</td>
                     <td class="col-hm">0</td>
