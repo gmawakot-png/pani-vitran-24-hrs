@@ -61,7 +61,6 @@
             border-radius: 12px;
             padding: 16px;
             box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
-            position: relative;
         }
         .bottom-notice-card h3 {
             margin-top: 0;
@@ -101,52 +100,28 @@
         .admin-only-block { display: none; }
         
         .toggle-admin-btn { 
-            position: fixed; 
-            bottom: 20px; 
-            right: 20px; 
-            background: #34495e; 
-            color: #fff; 
-            border: none; 
-            font-size: 13px; 
-            padding: 10px 18px; 
-            border-radius: 30px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
+            position: fixed; bottom: 20px; right: 20px; background: #34495e; color: #fff; border: none; 
+            font-size: 13px; padding: 10px 18px; border-radius: 30px; cursor: pointer; font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000;
         }
 
         .floating-save-btn {
-            position: fixed; 
-            bottom: 70px; 
-            right: 20px; 
-            background: #2980b9; 
-            color: #fff; 
-            padding: 10px 18px; 
-            border-radius: 30px; 
-            border: none; 
-            font-size: 13px; 
-            font-weight: bold; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer; 
-            z-index: 1000; 
-            display: none;
+            position: fixed; bottom: 70px; right: 20px; background: #2980b9; color: #fff; padding: 10px 18px; 
+            border-radius: 30px; border: none; font-size: 13px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer; z-index: 1000; display: none;
         }
 
         .btn-action { background: #27ae60; color: #fff; width: 100%; padding: 8px; margin-top: 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-view-chart { background: #16a085; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; }
         .btn-print-slip { background: #e67e22; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; display: none; }
-        .btn-wa-slip { background: #25D366; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; display: none; }
         .btn-print-all { background: #8e44ad; color: #fff; border: none; padding: 10px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
         
         .btn-row-print { background: #e67e22; color: white; border: none; padding: 4px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-        .btn-row-wa { background: #25D366; color: white; border: none; padding: 4px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; margin-left: 2px; }
 
         .full-chart-box { display: none; margin-top: 10px; padding: 10px; background: #fcf3cf; border: 1px solid #f1c40f; border-radius: 5px; font-size: 12px; max-height: 250px; overflow-y: auto; }
         
         .btn-move { background: #3498db; color: white; border: none; padding: 4px 8px; font-size: 12px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
         .btn-move:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .btn-insert { background: #27ae60; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
         .btn-delete { background: #e74c3c; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
 
         .modal-overlay {
@@ -166,107 +141,56 @@
         }
 
         .clean-input {
-            border: 1px solid #bdc3c7;
-            padding: 4px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            outline: none;
+            border: 1px solid #bdc3c7; padding: 4px 6px; border-radius: 4px; font-size: 12px; outline: none;
         }
         .clean-input:focus { border-color: #2980b9; }
 
         @media screen and (max-width: 768px) {
-            .clean-input, .input-group input, .input-group select {
-                font-size: 16px !important;
-            }
+            .clean-input, .input-group input, .input-group select { font-size: 16px !important; }
         }
 
         #printableArea { display: none; }
 
         .slip-box {
-            width: 100%;
-            padding: 5px 8px;
-            border: 1px dashed #444;
-            font-family: Arial, sans-serif;
-            background: #fff;
-            box-sizing: border-box;
-            border-radius: 4px;
-            color: #111;
-            font-size: 10px;
-            line-height: 1.25;
+            width: 100%; padding: 3px 5px; border: 1px dashed #444; font-family: Arial, sans-serif;
+            background: #fff; box-sizing: border-box; border-radius: 3px; color: #111; font-size: 7.5px; line-height: 1.15;
+            page-break-inside: avoid !important; break-inside: avoid !important;
         }
         .slip-header-title {
-            text-align: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: #0b5ed7;
-            border-bottom: 1px solid #000;
-            padding-bottom: 2px;
-            margin-bottom: 4px;
+            text-align: center; font-size: 9px; font-weight: bold; color: #0b5ed7;
+            border-bottom: 1px solid #000; padding-bottom: 1px; margin-bottom: 2px;
         }
-        .slip-section-title {
-            font-size: 10.5px;
-            font-weight: bold;
-            color: #000;
-            margin-top: 2px;
-            margin-bottom: 2px;
-        }
-        .slip-field {
-            font-size: 9.5px;
-            margin-bottom: 1px;
-            white-space: normal;
-            word-break: break-word;
-        }
+        .slip-section-title { font-size: 8px; font-weight: bold; color: #000; margin-top: 1px; margin-bottom: 1px; }
+        .slip-field { font-size: 7.5px; margin-bottom: 1px; white-space: normal; word-break: break-word; }
         .slip-field b { color: #000; }
         .slip-time-txt { color: #1a5276; font-weight: bold; }
         .slip-even-time { color: #c0392b; font-weight: bold; }
-        .slip-divider {
-            border-top: 1px dashed #888;
-            margin: 4px 0;
-        }
-        .slip-due-text {
-            color: #c0392b;
-            font-weight: bold;
-            font-size: 9.5px;
-            margin-top: 3px;
-        }
+        .slip-divider { border-top: 1px dashed #888; margin: 2px 0; }
         .slip-footer-txt {
-            margin-top: 4px;
-            text-align: center;
-            font-size: 8.5px;
-            border-top: 1px solid #ccc;
-            padding-top: 2px;
-            color: #555;
-            font-weight: bold;
+            margin-top: 2px; text-align: center; font-size: 7px; border-top: 1px solid #ccc; padding-top: 1px; color: #555; font-weight: bold;
         }
 
         @media print {
-            @page { size: A4 portrait; margin: 5mm; }
+            @page { size: A4 portrait; margin: 4mm; }
             body { background: #fff !important; margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .container, .toggle-admin-btn, .floating-save-btn, .modal-overlay { display: none !important; }
             
             #printableArea {
                 display: grid !important;
-                grid-template-columns: repeat(2, 1fr) !important;
-                grid-gap: 6mm 5mm !important;
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                grid-template-rows: repeat(4, auto) !important;
+                grid-gap: 3mm 3mm !important;
+                width: 100% !important; margin: 0 !important; padding: 0 !important;
             }
 
             #printableArea.single-slip-mode { display: block !important; }
             #printableArea.single-slip-mode .slip-box {
-                width: 100% !important;
-                max-width: 420px !important;
-                margin: 20px auto !important;
-                padding: 12px !important;
-                font-size: 12px !important;
-                border: 1.5px dashed #000 !important;
+                width: 100% !important; max-width: 420px !important; margin: 20px auto !important; padding: 12px !important;
+                font-size: 12px !important; border: 1.5px dashed #000 !important;
             }
             #printableArea.single-slip-mode .slip-header-title { font-size: 15px !important; }
             #printableArea.single-slip-mode .slip-section-title { font-size: 13px !important; }
             #printableArea.single-slip-mode .slip-field { font-size: 11.5px !important; }
-
-            .slip-box { page-break-inside: avoid !important; break-inside: avoid !important; box-shadow: none !important; }
         }
     </style>
 </head>
@@ -274,7 +198,7 @@
 
 <div class="container">
     <div class="header-bar">
-        <h2>पानी सिंचाई वितरण सारणी (यदि नं 2 में 24 घंटे पानी उपलब्ध होता हे तो)</h2>
+        <h2>पानी सिंचाई वितरण सारणी</h2>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div class="live-clock-box">
                 🌐 <span id="liveClock">00:00:00 AM</span>
@@ -312,7 +236,6 @@
             </div>
 
             <button class="btn-print-slip" id="printSlipBtn" onclick="printSelectedSlip()">🖨️ इस सदस्य की पर्ची प्रिंट करें</button>
-            <button class="btn-wa-slip" id="waSlipBtn" onclick="sendWAServiceFromSelect()">📲 WhatsApp पर पर्ची भेजें</button>
             <button class="btn-view-chart" onclick="toggleFullChart()">📅 पूरे महीने की सिंचाई तारीखें (Full Chart)</button>
 
             <div id="fullChartBox" class="full-chart-box">
@@ -333,7 +256,7 @@
         <div class="summary-card">
             <h3>सारांश (Summary)</h3>
             <table class="summary-table">
-                <tr id="sumBighaRow" class="info-col"><td>कुल बीघा:</td><td class="val" id="sumBigha">-</td></tr>
+                <tr><td>कुल बीघा:</td><td class="val" id="sumBigha">-</td></tr>
                 <tr><td>बांटा गया कुल समय:</td><td class="val" id="displayDistributedHM">0 घंटे 0 मिनट</td></tr>
                 <tr><td>कुल पानी वितरण समय:</td><td class="val" id="displayTotalDistributionHM">0 घंटे 0 मिनट</td></tr>
                 <tr><td>आखरी बचा समय:</td><td class="val" id="displayRemainingHours">0 मिनट</td></tr>
@@ -363,7 +286,7 @@
             </div>
             <div class="input-group">
                 <label for="hoursToDistribute">कुल घंटे बाँटने हैं:</label>
-                <input type="number" id="hoursToDistribute" value="11" step="0.1" inputmode="decimal" oninput="debouncedCalculate()">
+                <input type="number" id="hoursToDistribute" value="23" step="0.1" inputmode="decimal" oninput="debouncedCalculate()">
             </div>
             <div class="input-group">
                 <label for="startTime">शुरुआती समय (Start):</label>
@@ -371,12 +294,12 @@
             </div>
 
             <button class="btn-action" id="toggleTableVisibilityBtn" style="background:#e74c3c; margin-bottom:5px;" onclick="toggleTableVisibility()">🔒 मेन सारणी (Table) पब्लिक रखें: बंद</button>
-            <button class="btn-action" id="toggleBottomNoticeBtn" style="background:#e74c3c; margin-bottom:5px;" onclick="toggleBottomNoticeVisibility()">🔒 बॉटम संदेश बॉक्स (Public): बंद</button>
+            <button class="btn-action" id="toggleBottomNoticeBtn" style="background:#27ae60; margin-bottom:5px;" onclick="toggleBottomNoticeVisibility()">🔓 बॉटम संदेश बॉक्स (Public): चालू</button>
             <button class="btn-action" style="background:#e67e22; margin-bottom:5px;" onclick="reverseArrayData()">🔄 पूरी सारणी का क्रम उल्टा करें</button>
             <button class="btn-action" style="background:#27ae60;" id="saveBtnMain" onclick="saveDataToCloud()">☁️ गूगल शीट में सेव करें</button>
             <button class="btn-action" style="background:#8e44ad;" onclick="openChangePassModal()">🔑 पासवर्ड बदलें</button>
             
-            <button class="btn-print-all" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें</button>
+            <button class="btn-print-all" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें (12 प्रति पेज)</button>
         </div>
     </div>
 
@@ -388,9 +311,9 @@
         <table class="main-table" id="scheduleTable">
             <thead>
                 <tr>
-                    <th style="width: 45px;" class="info-col">S.No</th>
-                    <th class="info-col">नाम</th>
-                    <th class="info-col">बीघा</th>
+                    <th style="width: 45px;">S.No</th>
+                    <th>नाम</th>
+                    <th>बीघा</th>
                     <th class="red-txt">मिनट</th>
                     <th class="red-txt">घंटे /मिनट</th>
                     <th class="red-txt">अतिरिक्त समय</th>
@@ -398,26 +321,26 @@
                     <th class="red-txt">तक (समाप्ति)</th>
                     <th>धनराशी</th>
                     <th>रू० प्राप्त तारीख</th>
-                    <th style="min-width:110px;">कार्रवाई / पर्ची</th>
-                    <th id="actionHeader" style="display:none; min-width: 220px;">एडमिन कार्रवाई</th>
+                    <th style="min-width:90px;">पर्ची</th>
+                    <th id="actionHeader" style="display:none; min-width: 200px;">एडमिन कार्रवाई</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
             <tfoot>
                 <tr style="background:#f2f2f2; font-weight:bold;">
-                    <td colspan="3" class="info-col">कुल बीघा: <span id="totalBighaFoot">-</span></td>
+                    <td colspan="3">कुल:</td>
                     <td id="totalMinFoot">0</td>
                     <td id="totalHMFoot" class="red-txt">0 घंटे 0 मिनट</td>
-                    <td id="totalExtraFoot" class="red-txt">-</td>
+                    <td id="totalExtraFoot" class="red-txt">0</td>
                     <td colspan="2"></td>
                     <td id="totalAmountFoot" style="color:#27ae60; font-size:13px;">0</td>
-                    <td colspan="4"></td>
+                    <td colspan="3"></td>
                 </tr>
             </tfoot>
         </table>
     </div>
 
-    <div class="bottom-notice-card" id="bottomNoticeCardWrapper" style="display: none;">
+    <div class="bottom-notice-card" id="bottomNoticeCardWrapper" style="display: block;">
         <h3>📌 आवश्यक सूचना एवं निर्देश</h3>
         <div id="bottomNoticeDisplay" class="bottom-notice-content">यहाँ महत्वपूर्ण सूचना प्रदर्शित होगी।</div>
         
@@ -470,13 +393,13 @@
     let noticeMessage = "";
     let bottomNoticeMessage = ""; 
     let isTablePublic = false; 
-    let isBottomNoticePublic = false; 
+    let isBottomNoticePublic = true; 
     let selectedMode = "oddeven"; 
     let waterDates = [];
     let debounceTimer;
 
     let initialData = [
-        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, extra: 40, amount: "", date: "" },
+        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, extra: "", amount: "", date: "" },
         { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, extra: "", amount: "", date: "" },
         { name: "श्री कोमल सिंह नेगी", bigha: 0.5, extra: "", amount: "", date: "" },
         { name: "श्री राजेश कुमार जी", bigha: 2, extra: "", amount: "", date: "" },
@@ -493,7 +416,7 @@
         { name: "श्रीमती पिंकी देवी", bigha: 2, extra: "", amount: "", date: "" },
         { name: "श्री मस्तान सिंह जी", bigha: 0.5, extra: "", amount: "", date: "" },
         { name: "श्रीमती पुनीता देवी", bigha: 0.5, extra: "", amount: "", date: "" },
-        { name: "श्रीमती जस्सी देवी", bigha: 3, extra: "", amount: 100, date: "25-07-2026" }
+        { name: "श्रीमती जस्सी देवी", bigha: 3, extra: "", amount: 100, date: "25-07" }
     ];
 
     function updateLiveClock() {
@@ -638,23 +561,12 @@
             }
         } catch(e) {
             console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
-        } finally {
-            generate30DaysCalendar();
-            renderTable();
         }
+        calculateAll();
     }
 
     async function saveDataToCloud() {
-        let saveBtnMain = document.getElementById('saveBtnMain');
-        let floatBtn = document.getElementById('floatingSaveBtn');
-        
-        saveBtnMain.innerText = "⏳ सेव हो रहा है...";
-        floatBtn.innerText = "⏳ सेव हो रहा है...";
-        saveBtnMain.disabled = true;
-        floatBtn.disabled = true;
-
         let payload = {
-            users: initialData,
             password: adminPassword,
             notice: noticeMessage,
             bottomNotice: bottomNoticeMessage,
@@ -665,439 +577,416 @@
             gapDays: document.getElementById('intervalInput').value,
             totalPoolHours: document.getElementById('totalPoolHours').value,
             hoursToDistribute: document.getElementById('hoursToDistribute').value,
-            startTime: document.getElementById('startTime').value
+            startTime: document.getElementById('startTime').value,
+            users: initialData
         };
 
         try {
-            await fetch(GOOGLE_SCRIPT_URL, {
+            document.getElementById('floatingSaveBtn').innerText = "सेव हो रहा है...";
+            let res = await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            
-            alert("✅ डेटा गूगल शीट (Google Sheet) में सफलतापूर्वक सेव हो गया है!");
+            if(res.ok) {
+                alert("डेटा सफलतापूर्वक गूगल शीट पर सेव हो गया!");
+            } else {
+                alert("सेव करने में त्रुटि हुई!");
+            }
         } catch(e) {
-            alert("❌ नेटवर्क एरर: " + e.message);
+            alert("कनेक्शन त्रुटि: " + e.message);
         } finally {
-            saveBtnMain.innerText = "☁️ गूगल शीट में सेव करें";
-            floatBtn.innerText = "💾 गूगल शीट पर सेव करें";
-            saveBtnMain.disabled = false;
-            floatBtn.disabled = false;
+            document.getElementById('floatingSaveBtn').innerText = "💾 गूगल शीट पर सेव करें";
         }
-    }
-
-    function timeToMinutes(timeStr) {
-        if(!timeStr) return 0;
-        let parts = timeStr.trim().split(" ");
-        let time = parts[0].split(":");
-        let hours = parseInt(time[0]) || 0;
-        let minutes = parseInt(time[1]) || 0;
-        let period = parts[1] ? parts[1].toUpperCase() : 'AM';
-        
-        if (period === "PM" && hours < 12) hours += 12;
-        if (period === "AM" && hours === 12) hours = 0;
-        return hours * 60 + minutes;
-    }
-
-    function minutesToTime(totalMinutes) {
-        totalMinutes = (Math.round(totalMinutes) % (24 * 60) + (24 * 60)) % (24 * 60);
-        let hours = Math.floor(totalMinutes / 60);
-        let minutes = totalMinutes % 60;
-        let period = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        let strHours = hours < 10 ? '0' + hours : hours;
-        let strMinutes = minutes < 10 ? '0' + minutes : minutes;
-        return strHours + ':' + strMinutes + ':00 ' + period;
     }
 
     function calculateAll() {
-        let totalPoolHours = parseFloat(document.getElementById('totalPoolHours').value) || 0;
-        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 0;
-        let startTimeStr = document.getElementById('startTime').value || "07:00:00 AM";
+        renderTable();
+        populateUserDropdown();
+        generate30DaysCalendar();
+    }
 
-        let totalBigha = initialData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
-        let distMinutes = hoursToDistribute * 60;
-        let ratePerBigha = totalBigha > 0 ? distMinutes / totalBigha : 0;
-
-        let totalMinSum = 0;
-        let totalBaseMinSum = 0;
-        let totalExtraSum = 0;
-        let totalAmountSum = 0;
-
-        let currentMinutes = timeToMinutes(startTimeStr);
-        initialData.forEach((item) => {
-            let bigha = parseFloat(item.bigha) || 0;
-            let extra = parseFloat(item.extra) || 0;
-            let calculatedMin = Math.round(bigha * ratePerBigha);
-            let finalMin = calculatedMin + extra;
-
-            item.calculatedMin = finalMin;
-            item.startTime = minutesToTime(currentMinutes);
-            currentMinutes += finalMin;
-            item.endTime = minutesToTime(currentMinutes);
-
-            totalBaseMinSum += calculatedMin;
-            totalMinSum += finalMin;
-            totalExtraSum += extra;
-            totalAmountSum += parseFloat(item.amount) || 0;
+    function populateUserDropdown() {
+        let select = document.getElementById('userSelect');
+        let currentVal = select.value;
+        select.innerHTML = '<option value="">-- नाम चुनें --</option>';
+        initialData.forEach((row, idx) => {
+            let opt = document.createElement('option');
+            opt.value = idx;
+            opt.text = row.name; 
+            select.appendChild(opt);
         });
-
-        let revCurrentMin = timeToMinutes(startTimeStr);
-        for (let i = initialData.length - 1; i >= 0; i--) {
-            let item = initialData[i];
-            item.revStartTime = minutesToTime(revCurrentMin);
-            revCurrentMin += item.calculatedMin;
-            item.revEndTime = minutesToTime(revCurrentMin);
-        }
-
-        document.getElementById('sumBigha').innerText = totalBigha;
-        document.getElementById('totalBighaFoot').innerText = totalBigha;
-        
-        let baseHours = Math.floor(totalBaseMinSum / 60);
-        let baseMins = totalBaseMinSum % 60;
-        document.getElementById('totalHMFoot').innerText = `${baseHours} घंटे ${baseMins} मिनट`;
-
-        let dHours = Math.floor(totalMinSum / 60);
-        let dMins = totalMinSum % 60;
-        document.getElementById('displayDistributedHM').innerText = `${dHours} घंटे ${dMins} मिनट`;
-
-        document.getElementById('totalMinFoot').innerText = totalMinSum;
-
-        let targetDistMin = hoursToDistribute * 60;
-        let tHours = Math.floor(targetDistMin / 60);
-        let tMins = Math.round(targetDistMin % 60);
-        document.getElementById('displayTotalDistributionHM').innerText = `${tHours} घंटे ${tMins} मिनट`;
-
-        let totalPoolMin = totalPoolHours * 60;
-        let remMin = totalPoolMin - totalMinSum;
-        document.getElementById('displayRemainingHours').innerText = `${remMin} मिनट`;
-        
-        let extraHours = Math.floor(totalExtraSum / 60);
-        let extraMins = totalExtraSum % 60;
-        let extraText = totalExtraSum > 0 ? (extraHours > 0 ? `${extraHours} घंटे ${extraMins} मि० (${totalExtraSum} मि०)` : `${totalExtraSum} मिनट`) : '-';
-        document.getElementById('totalExtraFoot').innerText = extraText;
-        
-        document.getElementById('totalAmountFoot').innerText = totalAmountSum;
+        select.value = currentVal;
     }
 
     function renderTable() {
-        calculateAll();
-
-        let adminBlocks = document.querySelectorAll('.admin-only-block');
-        adminBlocks.forEach(b => b.style.display = isAdmin ? 'block' : 'none');
-
-        let floatSaveBtn = document.getElementById('floatingSaveBtn');
-        if (floatSaveBtn) floatSaveBtn.style.display = isAdmin ? 'block' : 'none';
-
-        let editToggleBtn = document.getElementById('editToggleBtn');
-        if (editToggleBtn) editToggleBtn.innerText = isAdmin ? "👁️ View Mode" : "🔐 Admin Edit";
-
-        let tableWrapper = document.getElementById('tableWrapper');
-        if (tableWrapper) tableWrapper.style.display = (isAdmin || isTablePublic) ? 'block' : 'none';
-
-        let toggleTableBtn = document.getElementById('toggleTableVisibilityBtn');
-        if (toggleTableBtn) {
-            toggleTableBtn.innerText = isTablePublic ? "🔓 मेन सारणी (Table) पब्लिक रखें: चालू" : "🔒 मेन सारणी (Table) पब्लिक रखें: बंद";
-            toggleTableBtn.style.background = isTablePublic ? "#27ae60" : "#e74c3c";
-        }
-
-        let bottomCardWrapper = document.getElementById('bottomNoticeCardWrapper');
-        if (bottomCardWrapper) bottomCardWrapper.style.display = (isAdmin || isBottomNoticePublic) ? 'block' : 'none';
-
-        let toggleBottomBtn = document.getElementById('toggleBottomNoticeBtn');
-        if (toggleBottomBtn) {
-            toggleBottomBtn.innerText = isBottomNoticePublic ? "🔓 बॉटम संदेश बॉक्स (Public): चालू" : "🔒 बॉटम संदेश बॉक्स (Public): बंद";
-            toggleBottomBtn.style.background = isBottomNoticePublic ? "#27ae60" : "#e74c3c";
-        }
-
-        let actionHeader = document.getElementById('actionHeader');
-        if (actionHeader) actionHeader.style.display = isAdmin ? 'table-cell' : 'none';
-
         let tbody = document.getElementById('tableBody');
-        tbody.innerHTML = "";
+        tbody.innerHTML = '';
 
-        let userSelect = document.getElementById('userSelect');
-        let currentSelected = userSelect.value;
-        userSelect.innerHTML = '<option value="">-- नाम चुनें --</option>';
+        let totalBigha = 0;
+        let totalMinutesPure = 0; 
+        let totalMinutesCalc = 0;
+        let totalExtraMinutesSum = 0; 
+        let totalAmountVal = 0;
 
-        initialData.forEach((item, index) => {
-            let opt = document.createElement('option');
-            opt.value = index;
-            opt.innerText = item.name;
-            userSelect.appendChild(opt);
+        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
+        let totalPoolHours = parseFloat(document.getElementById('totalPoolHours').value) || 24;
+
+        initialData.forEach((row) => {
+            let bigha = parseFloat(row.bigha) || 0;
+            let extra = parseFloat(row.extra) || 0;
+            let amount = parseFloat(row.amount) || 0;
+            totalBigha += bigha;
+            totalExtraMinutesSum += extra; 
+            totalAmountVal += amount;
+        });
+
+        let targetTotalMinutes = hoursToDistribute * 60;
+        let cumulativeMinutes = 0;
+        let startStr = document.getElementById('startTime').value.trim();
+
+        let rowCalculatedData = [];
+        initialData.forEach((row) => {
+            let bigha = parseFloat(row.bigha) || 0;
+            let extra = parseFloat(row.extra) || 0;
+            let pureMinutes = (totalBigha > 0) ? (bigha * targetTotalMinutes / totalBigha) : 0;
+            totalMinutesPure += pureMinutes;
+            let minutes = pureMinutes + extra;
+            rowCalculatedData.push({ minutes: minutes });
+            totalMinutesCalc += minutes;
+        });
+
+        initialData.forEach((row, idx) => {
+            let minutes = rowCalculatedData[idx].minutes;
+            let hoursPart = Math.floor(minutes / 60);
+            let minsPart = Math.round(minutes % 60);
+
+            let startTimeFormatted = addMinutesToTime(startStr, cumulativeMinutes);
+            let endTimeFormatted = addMinutesToTime(startStr, cumulativeMinutes + minutes);
+            cumulativeMinutes += minutes;
 
             let tr = document.createElement('tr');
-            if (currentSelected !== "" && parseInt(currentSelected) === index) {
-                tr.classList.add('highlight-row');
+            if(isAdmin) tr.classList.add('highlight-row');
+
+            let adminActionHtml = '';
+            if(isAdmin) {
+                adminActionHtml = `
+                    <button class="btn-move" onclick="moveRow(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲ ऊपर</button>
+                    <button class="btn-move" onclick="moveRow(${idx}, 1)" ${idx === initialData.length - 1 ? 'disabled' : ''}>▼ नीचे</button>
+                    <button class="btn-delete" onclick="deleteRow(${idx})">❌ हटाएं</button>
+                `;
             }
 
-            let h = Math.floor(item.calculatedMin / 60);
-            let m = item.calculatedMin % 60;
-            let hmStr = `${h} घंटे ${m} मिनट`;
-
-            let actionTdHtml = isAdmin ? `
-                <button class="btn-move" onclick="moveRow(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
-                <button class="btn-move" onclick="moveRow(${index}, 1)" ${index === initialData.length - 1 ? 'disabled' : ''}>▼</button>
-                <button class="btn-insert" onclick="insertRow(${index})">+जोड़ें</button>
-                <button class="btn-delete" onclick="deleteRow(${index})">हटाएं</button>
-            ` : '';
-
             tr.innerHTML = `
-                <td class="info-col">${index + 1}</td>
-                <td class="info-col">${isAdmin ? `<input type="text" class="clean-input" value="${item.name}" oninput="updateRowData(${index}, 'name', this.value)">` : item.name}</td>
-                <td class="info-col">${isAdmin ? `<input type="number" step="any" inputmode="decimal" class="clean-input" style="width:50px;" value="${item.bigha}" oninput="updateRowData(${index}, 'bigha', this.value)">` : item.bigha}</td>
-                <td class="red-txt">${item.calculatedMin}</td>
-                <td class="red-txt">${hmStr}</td>
-                <td class="red-txt">${isAdmin ? `<input type="number" inputmode="decimal" class="clean-input" style="width:50px;" value="${item.extra}" oninput="updateRowData(${index}, 'extra', this.value)">` : (item.extra || '-')}</td>
-                <td class="red-txt">${item.startTime}</td>
-                <td class="red-txt">${item.endTime}</td>
-                <td>${isAdmin ? `<input type="number" inputmode="decimal" class="clean-input" style="width:60px;" value="${item.amount}" oninput="updateRowData(${index}, 'amount', this.value)">` : (item.amount || '-')}</td>
-                <td>${isAdmin ? `<input type="text" class="clean-input" style="width:85px;" value="${item.date}" oninput="updateRowData(${index}, 'date', this.value)">` : (item.date || '-')}</td>
+                <td>${idx + 1}</td>
+                <td><input type="text" class="clean-input" style="width:130px;" value="${row.name}" onchange="updateRowField(${idx}, 'name', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="number" class="clean-input" style="width:55px; text-align:center;" step="0.1" value="${row.bigha}" onchange="updateRowField(${idx}, 'bigha', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td class="red-txt">${Math.round(minutes)}</td>
+                <td class="red-txt">${hoursPart} घंटे ${minsPart} मिनट</td>
+                <td class="red-txt"><input type="number" class="clean-input" style="width:55px; text-align:center;" value="${row.extra || ''}" placeholder="0" oninput="updateRowFieldLive(${idx}, 'extra', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td class="red-txt">${startTimeFormatted}</td>
+                <td class="red-txt">${endTimeFormatted}</td>
+                <td><input type="number" class="clean-input" style="width:65px; text-align:center;" value="${row.amount || ''}" placeholder="0" onchange="updateRowField(${idx}, 'amount', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" class="clean-input" style="width:85px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM" onchange="updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
                 <td>
-                    <button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️ पर्ची</button>
-                    <button class="btn-row-wa" onclick="sendWhatsAppSlip(${index})">📲 WA</button>
+                    <button class="btn-row-print" onclick="printRowSlip(${idx})">🖨️ पर्ची</button>
                 </td>
-                ${isAdmin ? `<td>${actionTdHtml}</td>` : ''}
+                <td style="display: ${isAdmin ? 'table-cell' : 'none'};">${adminActionHtml}</td>
             `;
             tbody.appendChild(tr);
         });
 
-        userSelect.value = currentSelected;
-        findMyTurn();
+        let totalFootH = Math.floor(totalMinutesPure / 60);
+        let totalFootM = Math.round(totalMinutesPure % 60);
+
+        document.getElementById('totalMinFoot').innerText = Math.round(totalMinutesCalc);
+        document.getElementById('totalHMFoot').innerText = `${totalFootH} घंटे ${totalFootM} मिनट`;
+        document.getElementById('totalExtraFoot').innerText = totalExtraMinutesSum;
+        document.getElementById('totalAmountFoot').innerText = totalAmountVal;
+        document.getElementById('sumBigha').innerText = totalBigha;
+
+        let distH = Math.floor(targetTotalMinutes / 60);
+        let distM = Math.round(targetTotalMinutes % 60);
+        document.getElementById('displayDistributedHM').innerText = `${distH} घंटे ${distM} मिनट`;
+
+        let totalDistributionMinutes = targetTotalMinutes + totalExtraMinutesSum;
+        let totalDistH = Math.floor(totalDistributionMinutes / 60);
+        let totalDistM = Math.round(totalDistributionMinutes % 60);
+        document.getElementById('displayTotalDistributionHM').innerText = `${totalDistH} घंटे ${totalDistM} मिनट`;
+
+        let poolTotalMins = totalPoolHours * 60;
+        let remMins = Math.max(0, poolTotalMins - totalDistributionMinutes);
+        let remHPart = Math.floor(remMins / 60);
+        let remMPart = Math.round(remMins % 60);
+        
+        let remText = "";
+        if(remHPart > 0 && remMPart > 0) remText = `${remHPart} घंटे ${remMPart} मिनट`;
+        else if(remHPart > 0) remText = `${remHPart} घंटे`;
+        else remText = `${remMPart} मिनट`;
+
+        document.getElementById('displayRemainingHours').innerText = remText;
+
+        let adminElements = document.querySelectorAll('.admin-only-block');
+        adminElements.forEach(el => el.style.display = isAdmin ? 'block' : 'none');
+        document.getElementById('actionHeader').style.display = isAdmin ? 'table-cell' : 'none';
+        document.getElementById('editToggleBtn').innerText = isAdmin ? "🔒 Admin Close" : "🔐 Admin Edit";
+        document.getElementById('floatingSaveBtn').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('toggleTableVisibilityBtn').innerText = isTablePublic ? "🔓 मेन सारणी (Table) पब्लिक रखें: चालू" : "🔒 मेन सारणी (Table) पब्लिक रखें: बंद";
+        document.getElementById('toggleBottomNoticeBtn').innerText = isBottomNoticePublic ? "🔓 बॉटम संदेश बॉक्स (Public): चालू" : "🔒 बॉटम संदेश बॉक्स (Public): बंद";
+        document.getElementById('directAdminDateBox').style.display = isAdmin ? 'block' : 'none';
+
+        document.getElementById('tableWrapper').style.display = (isAdmin || isTablePublic) ? 'block' : 'none';
+        document.getElementById('bottomNoticeCardWrapper').style.display = (isAdmin || isBottomNoticePublic) ? 'block' : 'none';
     }
 
-    function updateRowData(index, field, value) {
-        initialData[index][field] = value;
-        debouncedCalculate();
+    function updateRowField(idx, field, val) {
+        initialData[idx][field] = val;
+        calculateAll();
     }
 
-    function insertRow(index) {
-        initialData.splice(index + 1, 0, { name: "नया सदस्य", bigha: 1, extra: "", amount: "", date: "" });
-        renderTable();
+    function updateRowFieldLive(idx, field, val) {
+        initialData[idx][field] = val;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { calculateAll(); }, 500);
     }
 
-    function deleteRow(index) {
-        if (confirm("क्या आप वाकई इस नाम को हटाना चाहते हैं?")) {
-            initialData.splice(index, 1);
-            renderTable();
+    function deleteRow(idx) {
+        if(confirm("क्या आप वाकई इस पंक्ति को हटाना चाहते हैं?")) {
+            initialData.splice(idx, 1);
+            calculateAll();
         }
+    }
+
+    function addMinutesToTime(timeStr, minsToAdd) {
+        let parts = timeStr.split(' ');
+        let timePart = parts[0];
+        let modifier = parts[1] || 'AM';
+        let tSplits = timePart.split(':');
+        let hrs = parseInt(tSplits[0]) || 0;
+        let mins = parseInt(tSplits[1]) || 0;
+        let secs = parseInt(tSplits[2]) || 0;
+
+        if(modifier === 'PM' && hrs < 12) hrs += 12;
+        if(modifier === 'AM' && hrs === 12) hrs = 0;
+
+        let totalSecs = hrs * 3600 + mins * 60 + secs + Math.round(minsToAdd * 60);
+        let newHrs24 = Math.floor(totalSecs / 3600) % 24;
+        let newMins = Math.floor((totalSecs % 3600) / 60);
+        let newSecs = totalSecs % 60;
+
+        let newMod = newHrs24 >= 12 ? 'PM' : 'AM';
+        let newHrs12 = newHrs24 % 12;
+        if(newHrs12 === 0) newHrs12 = 12;
+
+        let pad = (n) => String(n).padStart(2, '0');
+        return `${pad(newHrs12)}:${pad(newMins)}:${pad(newSecs)} ${newMod}`;
     }
 
     function generate30DaysCalendar() {
-        let startVal = document.getElementById('startDateInput').value;
-        let gap = parseInt(document.getElementById('intervalInput').value) || 1;
-        if (!startVal) {
-            let today = new Date();
-            startVal = today.toISOString().split('T')[0];
-            document.getElementById('startDateInput').value = startVal;
-        }
-
+        let startInput = document.getElementById('startDateInput').value;
+        let interval = parseInt(document.getElementById('intervalInput').value) || 1;
+        let listEl = document.getElementById('datesList');
+        listEl.innerHTML = '';
         waterDates = [];
-        let curr = new Date(startVal);
-        let listHtml = "";
 
-        for (let i = 0; i < 30; i++) {
-            let dateStr = curr.toLocaleDateString('hi-IN', { day: '2-digit', month: 'short' });
-            waterDates.push(new Date(curr));
-            listHtml += `<li><b>बारी ${i + 1}:</b> ${dateStr}</li>`;
-            curr.setDate(curr.getDate() + gap);
+        if(!startInput) return;
+        let currentDate = new Date(startInput);
+
+        for(let i=0; i<30; i++) {
+            let dStr = currentDate.toLocaleDateString('hi-IN', { day: '2-digit', month: 'long' });
+            waterDates.push(dStr);
+            let li = document.createElement('li');
+            li.innerText = `${i+1}. दिनांक: ${dStr}`;
+            listEl.appendChild(li);
+            currentDate.setDate(currentDate.getDate() + interval);
         }
-
-        document.getElementById('datesList').innerHTML = listHtml;
-        findMyTurn();
     }
 
     function toggleFullChart() {
         let box = document.getElementById('fullChartBox');
-        box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
+        box.style.display = box.style.display === 'block' ? 'none' : 'block';
     }
 
     function findMyTurn() {
-        let selIndex = document.getElementById('userSelect').value;
+        let selIdx = parseInt(document.getElementById('userSelect').value);
         let resBox = document.getElementById('turnResult');
         let printBtn = document.getElementById('printSlipBtn');
-        let waBtn = document.getElementById('waSlipBtn');
 
-        if (selIndex === "") {
+        if(isNaN(selIdx) || selIdx < 0) {
             resBox.innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
-            if (printBtn) printBtn.style.display = "none";
-            if (waBtn) waBtn.style.display = "none";
+            printBtn.style.display = 'none';
             return;
         }
 
-        if (printBtn) printBtn.style.display = "block";
-        if (waBtn) waBtn.style.display = "block";
-        let idx = parseInt(selIndex);
-        let user = initialData[idx];
+        let user = initialData[selIdx];
+        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
+        let targetTotalMinutes = hoursToDistribute * 60;
+        let totalBigha = initialData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
+        let startStr = document.getElementById('startTime').value.trim();
 
-        let oddDates = [];
-        let evenDates = [];
-        waterDates.forEach((d, i) => {
-            let dStr = d.toLocaleDateString('hi-IN', { day: '2-digit', month: 'short' });
-            if (i % 2 === 0) oddDates.push(dStr);
-            else evenDates.push(dStr);
-        });
-
-        let html = `
-            <div><b>नाम:</b> <span style="color:#1a5276; font-weight:bold;">${user.name}</span></div>
-            <div style="margin-top:4px;"><b>1. औड (Odd) समय:</b> <span class="slip-time-txt">${user.startTime} से ${user.endTime}</span></div>
-            <div><b>औड तारीखें:</b> <span style="font-size:12px; color:#27ae60;">${oddDates.slice(0,4).join(', ')}...</span></div>
-            <div style="margin-top:4px;"><b>2. इवन (Even) समय:</b> <span class="slip-even-time">${user.revStartTime} से ${user.revEndTime}</span></div>
-            <div><b>इवन तारीखें:</b> <span style="font-size:12px; color:#e67e22;">${evenDates.slice(0,4).join(', ')}...</span></div>
-        `;
-
-        if (user.amount) {
-            html += `<div class="due-msg">💰 बकाया: ₹${user.amount} (भुगतान बाकी है)</div>`;
+        let cumulativeMinutes = 0;
+        let userMinutes = 0;
+        let rowMinutesList = [];
+        for(let i=0; i<initialData.length; i++) {
+            let b = parseFloat(initialData[i].bigha) || 0;
+            let e = parseFloat(initialData[i].extra) || 0;
+            let m = (totalBigha > 0) ? (b * targetTotalMinutes / totalBigha) + e : e;
+            rowMinutesList.push(m);
         }
 
-        resBox.innerHTML = html;
-        renderTableHighlightOnly(idx);
-    }
-
-    function renderTableHighlightOnly(highlightIndex) {
-        let tbody = document.getElementById('tableBody');
-        let rows = tbody.querySelectorAll('tr');
-        rows.forEach((r, i) => {
-            if (i === highlightIndex) {
-                r.classList.add('highlight-row');
+        for(let i=0; i<=selIdx; i++) {
+            if(i < selIdx) {
+                cumulativeMinutes += rowMinutesList[i];
             } else {
-                r.classList.remove('highlight-row');
+                userMinutes = rowMinutesList[i];
             }
-        });
+        }
+        let sTime = addMinutesToTime(startStr, cumulativeMinutes);
+        let eTime = addMinutesToTime(sTime, userMinutes);
+
+        // अगली बारी (Even Cycle) के लिए समय की गणना ठीक सुबह एडमिन द्वारा निर्धारित शुरुआती समय (जैसे 07:00:00 AM) से शुरू होगी
+        let timeBeforeUserInEvenCycle = 0;
+        for(let i = selIdx + 1; i < initialData.length; i++) {
+            timeBeforeUserInEvenCycle += rowMinutesList[i];
+        }
+        
+        let nextCycleStartTime = addMinutesToTime(startStr, timeBeforeUserInEvenCycle);
+        let nextCycleEndTime = addMinutesToTime(nextCycleStartTime, userMinutes);
+
+        let hPart = Math.floor(userMinutes / 60);
+        let mPart = Math.round(userMinutes % 60);
+
+        let duesHtml = (user.amount && user.amount > 0) ? `<div class="due-msg">धनराशि: ₹${user.amount} (जमा तारीख: ${user.date || 'नियत नहीं'})</div>` : '';
+
+        resBox.innerHTML = `
+            <b>👤 नाम:</b> ${user.name}<br>
+            <b>⏰ पहली बारी (Odd):</b> <span style="color:#1a5276; font-weight:bold;">${sTime} से ${eTime}</span> (${hPart} घंटे ${mPart} मिनट)<br>
+            <b>🔄 अगली बारी (Even):</b> <span style="color:#c0392b; font-weight:bold;">${nextCycleStartTime} से ${nextCycleEndTime}</span>
+            ${duesHtml}
+        `;
+        printBtn.style.display = 'block';
     }
 
-    function generateSlipHTML(user, idx) {
-        let h = Math.floor(user.calculatedMin / 60);
-        let m = user.calculatedMin % 60;
-        let durationStr = `${h} घंटे ${m} मिनट`;
+    function getFormattedSlipHTML(userIndex) {
+        let user = initialData[userIndex];
+        let totalBigha = initialData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
+        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
+        let targetTotalMinutes = hoursToDistribute * 60;
+        let startStr = document.getElementById('startTime').value.trim();
 
-        let oddDates = [];
-        let evenDates = [];
+        let cumulativeMinutes = 0;
+        let userMinutes = 0;
+        let rowMinutesList = [];
+        
+        for(let i=0; i<initialData.length; i++) {
+            let b = parseFloat(initialData[i].bigha) || 0;
+            let e = parseFloat(initialData[i].extra) || 0;
+            let m = (totalBigha > 0) ? (b * targetTotalMinutes / totalBigha) + e : e;
+            rowMinutesList.push(m);
+        }
 
-        waterDates.forEach((d, i) => {
-            let dStr = d.toLocaleDateString('hi-IN', { day: '2-digit', month: 'short' });
-            if (i % 2 === 0) oddDates.push(dStr);
-            else evenDates.push(dStr);
-        });
+        for(let i=0; i<=userIndex; i++) {
+            let m = rowMinutesList[i];
+            if(i < userIndex) {
+                cumulativeMinutes += m;
+            } else {
+                userMinutes = m;
+            }
+        }
+        let sTime = addMinutesToTime(startStr, cumulativeMinutes);
+        let eTime = addMinutesToTime(sTime, userMinutes);
+        let hPart = Math.floor(userMinutes / 60);
+        let mPart = Math.round(userMinutes % 60);
 
-        let oddDatesStr = oddDates.join(', ');
-        let evenDatesStr = evenDates.join(', ');
+        // पर्ची पर भी अगली बारी का समय ठीक एडमिन के शुरुआती समय से नए चक्र के रूप में शुरू होगा
+        let timeBeforeUserInEvenCycle = 0;
+        for(let i = userIndex + 1; i < initialData.length; i++) {
+            timeBeforeUserInEvenCycle += rowMinutesList[i];
+        }
+        
+        let nextCycleStartTime = addMinutesToTime(startStr, timeBeforeUserInEvenCycle);
+        let nextCycleEndTime = addMinutesToTime(nextCycleStartTime, userMinutes);
 
-        let dueHtml = user.amount ? `<div class="slip-due-text">बकाया: ₹${user.amount} रुपये (भुगतान बाकी है)</div>` : '';
+        let duesSlipHtml = (user.amount && user.amount > 0) ? `<div class="slip-field" style="color:#c0392b; font-weight:bold;">बकाया: ₹${user.amount} (भुगतान बाकी है)</div>` : '';
 
-        return `
+        if (selectedMode === "straight") {
+            let allDates = waterDates.join(', ');
+            return `
+            <div class="slip-box">
+                <div class="slip-header-title">💧 सिंचाई पर्ची (लगातार / Straight) 💧</div>
+                <div class="slip-section-title">नाम: ${user.name}</div>
+                <div class="slip-field"><b>तारीखें:</b> ${allDates || 'निर्दिष्ट नहीं'}</div>
+                <div class="slip-field"><b>समय:</b> <span class="slip-time-txt">${sTime} से ${eTime}</span></div>
+                <div class="slip-field"><b>अवधि:</b> ${hPart} घंटे ${mPart} मिनट</div>
+                ${duesSlipHtml}
+                <div class="slip-divider"></div>
+                <div class="slip-footer-txt">सिंचाई प्रबंधन समिति</div>
+            </div>`;
+        } else {
+            let oddDates = waterDates.filter((_, idx) => idx % 2 === 0).join(', ');
+            let evenDates = waterDates.filter((_, idx) => idx % 2 !== 0).join(', ');
+
+            return `
             <div class="slip-box">
                 <div class="slip-header-title">💧 सिंचाई पर्ची (औड-इवन) 💧</div>
+                
                 <div class="slip-section-title">1. नाम: ${user.name}</div>
-                <div class="slip-field"><b>बारी तारीख:</b> ${oddDatesStr}</div>
-                <div class="slip-field"><b>समय:</b> <span class="slip-time-txt">${user.startTime} से ${user.endTime}</span></div>
-                <div class="slip-field"><b>अवधि:</b> ${durationStr}</div>
+                <div class="slip-field"><b>बारी तारीख:</b> ${oddDates || 'निर्दिष्ट नहीं'}</div>
+                <div class="slip-field"><b>समय:</b> <span class="slip-time-txt">${sTime} से ${eTime}</span></div>
+                <div class="slip-field"><b>अवधि:</b> ${hPart} घंटे ${mPart} मिनट</div>
+
                 <div class="slip-divider"></div>
+
                 <div class="slip-section-title">2. नाम: ${user.name}</div>
-                <div class="slip-field"><b>बारी तारीख:</b> ${evenDatesStr}</div>
-                <div class="slip-field"><b>समय:</b> <span class="slip-even-time">${user.revStartTime} से ${user.revEndTime}</span></div>
-                <div class="slip-field"><b>अवधि:</b> ${durationStr}</div>
-                ${dueHtml}
+                <div class="slip-field"><b>बारी तारीख:</b> ${evenDates || 'निर्दिष्ट नहीं'}</div>
+                <div class="slip-field"><b>समय:</b> <span class="slip-even-time">${nextCycleStartTime} से ${nextCycleEndTime}</span></div>
+                <div class="slip-field"><b>अवधि:</b> ${hPart} घंटे ${mPart} मिनट</div>
+                ${duesSlipHtml}
+
                 <div class="slip-footer-txt">सिंचाई प्रबंधन समिति</div>
-            </div>
-        `;
-    }
-
-    /* WHATSAPP पर्ची भेजने का फ़ंक्शन */
-    function sendWhatsAppSlip(index) {
-        let user = initialData[index];
-        let h = Math.floor(user.calculatedMin / 60);
-        let m = user.calculatedMin % 60;
-        let durationStr = `${h} घंटे ${m} मिनट`;
-
-        let oddDates = [];
-        let evenDates = [];
-        waterDates.forEach((d, i) => {
-            let dStr = d.toLocaleDateString('hi-IN', { day: '2-digit', month: 'short' });
-            if (i % 2 === 0) oddDates.push(dStr);
-            else evenDates.push(dStr);
-        });
-
-        let text = `💧 *सिंचाई समय पर्ची* 💧\n\n` +
-            `👤 *नाम:* ${user.name}\n` +
-            `🌾 *बीघा:* ${user.bigha}\n` +
-            `⏱️ *कुल अवधि:* ${durationStr}\n\n` +
-            `1️⃣ *औड (Odd) बारी:* \n` +
-            `⏰ *समय:* ${user.startTime} से ${user.endTime}\n` +
-            `📅 *तारीखें:* ${oddDates.slice(0,5).join(', ')}...\n\n` +
-            `2️⃣ *इवन (Even) बारी:* \n` +
-            `⏰ *समय:* ${user.revStartTime} से ${user.revEndTime}\n` +
-            `📅 *तारीखें:* ${evenDates.slice(0,5).join(', ')}...\n\n`;
-
-        if (user.amount) {
-            text += `💰 *बकाया शुल्क:* ₹${user.amount}\n\n`;
+            </div>`;
         }
-        text += `_सिंचाई प्रबंधन समिति_`;
-
-        let encodedText = encodeURIComponent(text);
-        window.open(`https://wa.me/?text=${encodedText}`, '_blank');
-    }
-
-    function sendWAServiceFromSelect() {
-        let selIndex = document.getElementById('userSelect').value;
-        if (selIndex === "") {
-            alert("कृपया नाम चुनें!");
-            return;
-        }
-        sendWhatsAppSlip(parseInt(selIndex));
-    }
-
-    /* नाम फ़िल्टर फ़ंक्शन */
-    function filterTableByName() {
-        let input = document.getElementById("tableSearchInput").value.toLowerCase();
-        let rows = document.querySelectorAll("#tableBody tr");
-
-        rows.forEach(row => {
-            let nameCell = row.cells[1];
-            if (nameCell) {
-                let txtValue = nameCell.textContent || nameCell.innerText || (nameCell.querySelector('input') ? nameCell.querySelector('input').value : '');
-                if (txtValue.toLowerCase().indexOf(input) > -1) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            }
-        });
     }
 
     function printSelectedSlip() {
-        let selIndex = document.getElementById('userSelect').value;
-        if (selIndex === "") {
-            alert("कृपया पहले किसी सदस्य का नाम चुनें!");
-            return;
-        }
-        printSingleSlip(parseInt(selIndex));
+        let selIdx = document.getElementById('userSelect').value;
+        if(selIdx === "") { alert("कृपया पहले नाम चुनें!"); return; }
+        let area = document.getElementById('printableArea');
+        area.className = "single-slip-mode";
+        area.innerHTML = getFormattedSlipHTML(parseInt(selIdx));
+        window.print();
     }
 
-    function printSingleSlip(index) {
-        let user = initialData[index];
-        let pArea = document.getElementById('printableArea');
-        pArea.className = "single-slip-mode";
-        pArea.innerHTML = generateSlipHTML(user, index);
+    function printRowSlip(idx) {
+        let area = document.getElementById('printableArea');
+        area.className = "single-slip-mode";
+        area.innerHTML = getFormattedSlipHTML(idx);
         window.print();
     }
 
     function printAllSlips() {
-        let pArea = document.getElementById('printableArea');
-        pArea.className = "";
-        let slipsHtml = "";
-        initialData.forEach((user, idx) => {
-            slipsHtml += generateSlipHTML(user, idx);
+        let area = document.getElementById('printableArea');
+        area.className = "";
+        let htmlContent = '';
+        initialData.forEach((_, idx) => {
+            htmlContent += getFormattedSlipHTML(idx);
         });
-        pArea.innerHTML = slipsHtml;
+        area.innerHTML = htmlContent;
         window.print();
     }
 
+    function filterTableByName() {
+        let query = document.getElementById('tableSearchInput').value.toLowerCase();
+        let rows = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        for (let row of rows) {
+            let nameInput = row.getElementsByTagName('input')[0];
+            if (nameInput) {
+                let nameVal = nameInput.value.toLowerCase();
+                row.style.display = nameVal.includes(query) ? '' : 'none';
+            }
+        }
+    }
+
     window.onload = function() {
-        let today = new Date();
-        document.getElementById('startDateInput').value = today.toISOString().split('T')[0];
         loadDataFromCloud();
     };
 </script>
