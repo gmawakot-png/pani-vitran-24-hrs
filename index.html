@@ -86,7 +86,6 @@
         }
 
         .result-box { margin-top: 10px; padding: 12px; background: #ffffff; border: 2px solid #27ae60; border-radius: 6px; font-size: 13px; line-height: 1.6; }
-        .due-msg { margin-top: 8px; padding-top: 6px; border-top: 1px dashed #e74c3c; color: #c0392b; font-weight: bold; }
 
         .summary-table { width: 100%; border-collapse: collapse; }
         .summary-table td { padding: 5px 6px; font-size: 13px; border-bottom: 1px dashed #cbd5e1; }
@@ -96,7 +95,6 @@
         table.main-table th, table.main-table td { border: 1px solid #cbd5e1; padding: 6px 5px; text-align: center; white-space: nowrap; }
         table.main-table th { background-color: #ebedef; font-weight: bold; color: #2c3e50; }
         table.main-table th.red-txt, table.main-table td.red-txt { color: #c0392b; }
-        tr.highlight-row { background-color: #d4efdf !important; font-weight: bold; }
         
         .admin-only-block { display: none; }
         
@@ -415,8 +413,8 @@
 </div>
 
 <script>
-    // 🌟 Google Sheet Web App URL 🌟
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzltvn_3wYy7YJf7Oj3wHi61Kv4VnRI_6KQIY_sPqqVJvEcz4O2sfFJULrwRvE6HWxmUQ/exec";
+    // 🌟 आपका नया गूगल शीट वेब ऐप URL (Updated Live Sync Link) 🌟
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyJY-p9eKCt3Wq7yE3UHHqxb77t0EtQuqELpkIIU926d5hrZQI3I0UBzMMmGLhDuXTswA/exec";
 
     let isAdmin = false;
     let adminPassword = "2050"; 
@@ -549,7 +547,7 @@
         }
     }
 
-    // 🌟 गूगल शीट से लाइव डेटा लोड करना 🌟
+    // 🌟 गूगल शीट से डेटा पढ़ना (Auto-Sync) 🌟
     async function loadDataFromSheet() {
         try {
             let res = await fetch(GOOGLE_SHEET_URL + "?action=read");
@@ -557,7 +555,6 @@
             let json = await res.json();
             
             if (json && json.data && json.data.length > 0) {
-                // जब एडमिन खुद एडिट कर रहा हो, तब ऑटो-ओवरराइड रोकें
                 if (!isAdmin) {
                     initialData = json.data;
                     if(json.noticeMessage !== undefined) updateNoticeText(json.noticeMessage);
@@ -572,7 +569,7 @@
         }
     }
 
-    // 🌟 गूगल शीट में डेटा सेव करना (Live Sync for all) 🌟
+    // 🌟 गूगल शीट में डेटा सेव करना (Save to Cloud) 🌟
     async function saveDataToCloud() {
         let saveBtn = document.getElementById('floatingSaveBtn');
         let saveBtnMain = document.getElementById('saveBtnMain');
@@ -890,7 +887,7 @@
     window.onload = function() {
         document.getElementById('startDateInput').valueAsDate = new Date();
         loadDataFromSheet();
-        setInterval(loadDataFromSheet, 5000); // हर 5 सेकंड में गूगल शीट से ऑटो-अपडेट जाँच
+        setInterval(loadDataFromSheet, 5000); // हर 5 सेकंड में ऑटो-सिंक जांच
     };
 </script>
 </body>
