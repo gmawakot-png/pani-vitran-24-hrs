@@ -249,7 +249,7 @@
             #printableArea {
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr) !important;
-                grid-gap: 6mm 5mm !important; /* पर्ची काटने के लिए गैप */
+                grid-gap: 6mm 5mm !important;
                 width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -282,7 +282,7 @@
 
 <div class="container">
     <div class="header-bar">
-        <h2>पानी सिंचाई वितरण सारणी ( उल्टे सीधे क्रम में )</h2>
+        <h2>पानी सिंचाई वितरण सारणी नं 2 में 24 घंटे पानी</h2>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div class="live-clock-box">
                 🌐 <span id="liveClock">00:00:00 AM</span>
@@ -341,8 +341,8 @@
             <h3>सारांश (Summary)</h3>
             <table class="summary-table">
                 <tr id="sumBighaRow" class="info-col"><td>कुल बीघा:</td><td class="val" id="sumBigha">-</td></tr>
-                <tr><td>बांटा गया कुल समय:</td><td class="val" id="displayDistributedHM">11 घंटे 00 मिनट</td></tr>
-                <tr><td>कुल पानी वितरण समय:</td><td class="val" id="displayTotalDistributionHM">11 घंटे 40 मिनट</td></tr>
+                <tr><td>बांटा गया कुल समय:</td><td class="val" id="displayDistributedHM">0 घंटे 0 मिनट</td></tr>
+                <tr><td>कुल पानी वितरण समय:</td><td class="val" id="displayTotalDistributionHM">0 घंटे 0 मिनट</td></tr>
                 <tr><td>आखरी बचा समय:</td><td class="val" id="displayRemainingHours">0 मिनट</td></tr>
             </table>
         </div>
@@ -366,7 +366,7 @@
 
             <div class="input-group">
                 <label for="totalPoolHours">कुल उपलब्ध पानी समय (घंटे):</label>
-                <input type="number" id="totalPoolHours" value="12" step="0.1" oninput="debouncedCalculate()">
+                <input type="number" id="totalPoolHours" value="24" step="0.1" oninput="debouncedCalculate()">
             </div>
             <div class="input-group">
                 <label for="hoursToDistribute">कुल घंटे बाँटने हैं:</label>
@@ -770,11 +770,14 @@
 
         document.getElementById('totalMinFoot').innerText = totalMinSum;
 
-        let totalPoolMin = totalPoolHours * 60;
-        let tHours = Math.floor(totalPoolMin / 60);
-        let tMins = totalPoolMin % 60;
+        // सुधार किया गया: यहाँ कुल पानी वितरण समय में 'hoursToDistribute' (कुल घंटे बाँटने हैं) की वैल्यू दिखाई जाएगी
+        let targetDistMin = hoursToDistribute * 60;
+        let tHours = Math.floor(targetDistMin / 60);
+        let tMins = Math.round(targetDistMin % 60);
         document.getElementById('displayTotalDistributionHM').innerText = `${tHours} घंटे ${tMins} मिनट`;
 
+        // आखरी बचा समय = (कुल उपलब्ध पानी समय - बांटा गया कुल समय)
+        let totalPoolMin = totalPoolHours * 60;
         let remMin = totalPoolMin - totalMinSum;
         document.getElementById('displayRemainingHours').innerText = `${remMin} मिनट`;
         
@@ -966,7 +969,6 @@
         });
     }
 
-    // पर्ची HTML जनरेटर (1 पेज पर 10-12 पर्ची फिट करने हेतु ऑप्टिमाइज्ड)
     function generateSlipHTML(user, idx) {
         let h = Math.floor(user.calculatedMin / 60);
         let m = user.calculatedMin % 60;
