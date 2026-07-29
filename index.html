@@ -329,7 +329,7 @@
             <button class="btn-action" id="toggleTableVisibilityBtn" style="background:#e74c3c; margin-bottom:5px;" onclick="toggleTableVisibility()">🔒 मेन सारणी (Table) पब्लिक रखें: बंद</button>
             <button class="btn-action" id="toggleBottomNoticeBtn" style="background:#e74c3c; margin-bottom:5px;" onclick="toggleBottomNoticeVisibility()">🔒 बॉटम संदेश बॉक्स (Public): बंद</button>
             <button class="btn-action" style="background:#e67e22; margin-bottom:5px;" onclick="reverseArrayData()">🔄 पूरी सारणी का क्रम उल्टा करें</button>
-            <button class="btn-action" style="background:#27ae60;" id="saveBtnMain" onclick="saveDataToCloud()">☁️ ऑनलाइन क्लाउड पर सेव करें</button>
+            <button class="btn-action" style="background:#27ae60;" id="saveBtnMain" onclick="saveDataToCloud()">☁️ गूगल शीट में सेव करें</button>
             <button class="btn-action" style="background:#8e44ad;" onclick="openChangePassModal()">🔑 पासवर्ड बदलें</button>
             
             <button class="btn-print-all" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें</button>
@@ -383,7 +383,7 @@
 
 <div id="printableArea"></div>
 
-<button class="floating-save-btn" id="floatingSaveBtn" onclick="saveDataToCloud()">💾 सभी बदलाव क्लाउड पर सेव करें</button>
+<button class="floating-save-btn" id="floatingSaveBtn" onclick="saveDataToCloud()">💾 गूगल शीट पर सेव करें</button>
 <button class="toggle-admin-btn" onclick="openAdminModal()" id="editToggleBtn">🔐 Admin Edit</button>
 
 <div class="modal-overlay" id="adminModal">
@@ -415,9 +415,8 @@
 </div>
 
 <script>
-    const BIN_ID = "6a675d6dda38895dfe966712"; 
-    const MASTER_KEY = "$2a$10$JcvEWN7NJzepZ2xuDKG9g.Gjn/jzPPDh0sUxMcf2OyILulzPFrWoi"; 
-    const ACCESS_KEY = "$2a$10$ag8oztyaiCZ0sbItUNyZC.ZttjN7p1zmuJMDkX3tT9C/5dGSsLT2G"; 
+    // Google Sheet Script Exec Endpoint URL
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyA2IbaUoz3SyKm5O7pgaK3JY-YGz_A3BGJ491XEflpootckqDCDgVJx8kgEL-N590uyQ/exec";
 
     let isAdmin = false;
     let adminPassword = "2050"; 
@@ -548,7 +547,7 @@
             if(newP && newP.trim() !== "") {
                 adminPassword = newP.trim();
                 closeChangePassModal();
-                alert("पासवर्ड बदल दिया गया! कृपया क्लाउड पर सेव करें।");
+                alert("पासवर्ड बदल दिया गया! कृपया गूगल शीट पर सेव करें।");
             } else {
                 alert("कृपया नया पासवर्ड दर्ज करें!");
             }
@@ -559,20 +558,14 @@
 
     async function loadDataFromCloud() {
         try {
-            let cacheBuster = new Date().getTime();
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?cb=${cacheBuster}`, {
-                method: 'GET',
-                headers: { 
-                    "X-Master-Key": MASTER_KEY,
-                    "X-Access-Key": ACCESS_KEY,
-                    "X-Bin-Meta": "false"
-                }
+            let res = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'GET'
             });
             if (!res.ok) throw new Error("डेटा लोड करने में विफल");
             let record = await res.json();
             
             if(record) {
-                if(record.users) initialData = record.users;
+                if(record.users && record.users.length > 0) initialData = record.users;
                 if(record.password) adminPassword = record.password;
                 if(record.notice) {
                     noticeMessage = record.notice;
@@ -599,7 +592,7 @@
                 if(record.startTime !== undefined) document.getElementById('startTime').value = record.startTime;
             }
         } catch(e) {
-            console.error("Error loading cloud data:", e);
+            console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
         } finally {
             generate30DaysCalendar();
             renderTable();
@@ -631,27 +624,24 @@
         };
 
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                method: 'PUT',
+            let res = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': MASTER_KEY,
-                    'X-Access-Key': ACCESS_KEY
+                    'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify(payload)
             });
             
             if(res.ok) {
-                alert("✅ डेटा ऑनलाइन क्लाउड पर सफलता से सेव हो गया!");
+                alert("✅ डेटा गूगल शीट (Google Sheet) में सफलतापूर्वक सेव हो गया!");
             } else {
-                let errJson = await res.json().catch(() => ({}));
-                alert("❌ डेटा सेव करने में समस्या आई: " + (errJson.message || "Permissions issue"));
+                alert("❌ डेटा सेव करने में समस्या आई।");
             }
         } catch(e) {
-            alert("❌ नेटवर्क/सर्वर एरर: " + e.message);
+            alert("❌ नेटवर्क/गूगल शीट एरर: " + e.message);
         } finally {
-            saveBtnMain.innerText = "☁️ ऑनलाइन क्लाउड पर सेव करें";
-            floatBtn.innerText = "💾 सभी बदलाव क्लाउड पर सेव करें";
+            saveBtnMain.innerText = "☁️ गूगल शीट में सेव करें";
+            floatBtn.innerText = "💾 गूगल शीट पर सेव करें";
             saveBtnMain.disabled = false;
             floatBtn.disabled = false;
         }
