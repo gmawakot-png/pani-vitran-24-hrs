@@ -415,8 +415,8 @@
 </div>
 
 <script>
-    // Google Sheet Script Exec Endpoint URL (Updated Web App URL)
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8IzTn2fWYzDLAbs0SBJmcE5JyyLyxO6MLs4b5iuqC3n4FQdAzxZnK0ebWLc2_bN62VQ/exec";
+    // Google Sheet Script Exec Endpoint URL (Updated with New Deployment URL)
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2RvuJSH6o_B-BqCunk5MQtYj7tZxw1lsy5vsTWntoCZa1WSrLtcN6YwDEh0x0TnuJXg/exec";
 
     let isAdmin = false;
     let adminPassword = "2050"; 
@@ -629,7 +629,7 @@
                 body: JSON.stringify(payload)
             });
             
-            alert("✅ डेटा गूगल शीट (Google Sheet) में सेव कर दिया गया है!");
+            alert("✅ डेटा गूगल शीट (Google Sheet) में सफलतापूर्वक सेव हो गया है!");
         } catch(e) {
             alert("❌ नेटवर्क एरर: " + e.message);
         } finally {
