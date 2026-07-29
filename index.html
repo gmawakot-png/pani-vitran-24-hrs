@@ -415,8 +415,8 @@
 </div>
 
 <script>
-    // Google Sheet Script Exec Endpoint URL (Updated URL)
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzV9vAcUjG5_kzxUvF0W1jKh_Wv-VH9q2oq4KILsq9c14vLmtJWtgTu7Hrg-H3WKinYmg/exec";
+    // Google Sheet Script Exec Endpoint URL (Updated Web App URL)
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8IzTn2fWYzDLAbs0SBJmcE5JyyLyxO6MLs4b5iuqC3n4FQdAzxZnK0ebWLc2_bN62VQ/exec";
 
     let isAdmin = false;
     let adminPassword = "2050"; 
@@ -558,9 +558,7 @@
 
     async function loadDataFromCloud() {
         try {
-            let res = await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'GET'
-            });
+            let res = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
             if (!res.ok) throw new Error("डेटा लोड करने में विफल");
             let record = await res.json();
             
@@ -627,13 +625,11 @@
             await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             
-            alert("✅ डेटा गूगल शीट (Google Sheet) में सेव करने की रिक्वेस्ट भेज दी गई है!");
+            alert("✅ डेटा गूगल शीट (Google Sheet) में सेव कर दिया गया है!");
         } catch(e) {
             alert("❌ नेटवर्क एरर: " + e.message);
         } finally {
@@ -656,224 +652,126 @@
         return hours * 60 + minutes;
     }
 
-    function minutesToTime(mins) {
-        let hours = Math.floor(mins / 60) % 24;
-        let minutes = Math.round(mins % 60);
-        let period = hours >= 12 ? "PM" : "AM";
-        hours = hours % 12;
-        if (hours === 0) hours = 12;
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${period}`;
+    function minutesToTime(totalMinutes) {
+        totalMinutes = (totalMinutes % (24 * 60) + (24 * 60)) % (24 * 60);
+        let hours = Math.floor(totalMinutes / 60);
+        let minutes = Math.round(totalMinutes % 60);
+        let period = hours >= 12 ? 'PM' : 'AM';
+        let displayHours = hours % 12;
+        if (displayHours === 0) displayHours = 12;
+        let displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+        let displayHoursStr = displayHours < 10 ? '0' + displayHours : displayHours;
+        return `${displayHoursStr}:${displayMinutes}:00 ${period}`;
+    }
+
+    function formatHM(minutes) {
+        let h = Math.floor(minutes / 60);
+        let m = Math.round(minutes % 60);
+        let str = "";
+        if(h > 0) str += h + " घंटे ";
+        str += m + " मिनट";
+        return str;
     }
 
     function calculateAll() {
-        let totalPoolHours = parseFloat(document.getElementById('totalPoolHours').value) || 12;
-        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 11;
+        let totalPoolH = parseFloat(document.getElementById('totalPoolHours').value) || 0;
+        let hoursToDist = parseFloat(document.getElementById('hoursToDistribute').value) || 0;
         let startTimeStr = document.getElementById('startTime').value || "07:00:00 AM";
 
-        let totalBigha = initialData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
-        document.getElementById('sumBigha').innerText = totalBigha;
-        document.getElementById('totalBighaFoot').innerText = totalBigha;
+        let sumBigha = 0;
+        let totalExtraMin = 0;
+        initialData.forEach(d => {
+            sumBigha += parseFloat(d.bigha) || 0;
+            totalExtraMin += parseFloat(d.extra) || 0;
+        });
 
-        let minutesToDistribute = hoursToDistribute * 60;
-        let minutePerBigha = totalBigha > 0 ? minutesToDistribute / totalBigha : 0;
+        document.getElementById('sumBigha').innerText = sumBigha.toFixed(1);
+        document.getElementById('totalBighaFoot').innerText = sumBigha.toFixed(1);
 
-        let currentMins = timeToMinutes(startTimeStr);
-        let totalCalculatedMinutes = 0;
+        let distMinTotal = hoursToDist * 60;
+        let availableForBigha = distMinTotal - totalExtraMin;
+        let minPerBigha = sumBigha > 0 ? availableForBigha / sumBigha : 0;
+
+        let currentStartMin = timeToMinutes(startTimeStr);
+        let grandTotalMin = 0;
         let totalAmount = 0;
 
-        initialData.forEach((item) => {
-            let baseMin = (parseFloat(item.bigha) || 0) * minutePerBigha;
-            let extraMin = parseFloat(item.extra) || 0;
-            let totalItemMin = Math.round(baseMin + extraMin);
+        initialData.forEach(d => {
+            let b = parseFloat(d.bigha) || 0;
+            let ext = parseFloat(d.extra) || 0;
+            let calculatedMin = Math.round((b * minPerBigha) + ext);
+            
+            d.calculatedMin = calculatedMin;
+            d.startTimeFormatted = minutesToTime(currentStartMin);
+            currentStartMin += calculatedMin;
+            d.endTimeFormatted = minutesToTime(currentStartMin);
 
-            item.calculatedMin = totalItemMin;
-            item.startTime = minutesToTime(currentMins);
-            currentMins += totalItemMin;
-            item.endTime = minutesToTime(currentMins);
-
-            totalCalculatedMinutes += totalItemMin;
-            if(item.amount) totalAmount += parseFloat(item.amount) || 0;
+            grandTotalMin += calculatedMin;
+            totalAmount += parseFloat(d.amount) || 0;
         });
 
-        let distHours = Math.floor(totalCalculatedMinutes / 60);
-        let distMins = totalCalculatedMinutes % 60;
-        document.getElementById('displayDistributedHM').innerText = `${distHours} घंटे ${distMins} मिनट`;
-        document.getElementById('totalMinFoot').innerText = totalCalculatedMinutes;
-        document.getElementById('totalHMFoot').innerText = `${distHours} घंटे ${distMins} मिनट`;
-
-        let poolMins = Math.round(totalPoolHours * 60);
-        let remainingMins = poolMins - totalCalculatedMinutes;
-        let remHours = Math.floor(remainingMins / 60);
-        let remMins = remainingMins % 60;
+        document.getElementById('displayDistributedHM').innerText = formatHM(hoursToDist * 60);
+        document.getElementById('displayTotalDistributionHM').innerText = formatHM(grandTotalMin);
         
-        document.getElementById('displayTotalDistributionHM').innerText = `${Math.floor(poolMins/60)} घंटे ${poolMins%60} मिनट`;
-        document.getElementById('displayRemainingHours').innerText = `${remHours} घंटे ${remMins} मिनट`;
-        document.getElementById('totalAmountFoot').innerText = `₹${totalAmount}`;
+        let remainingMin = (totalPoolH * 60) - grandTotalMin;
+        document.getElementById('displayRemainingHours').innerText = formatHM(Math.max(0, remainingMin));
+
+        document.getElementById('totalMinFoot').innerText = grandTotalMin;
+        document.getElementById('totalHMFoot').innerText = formatHM(grandTotalMin);
+        document.getElementById('totalExtraFoot').innerText = totalExtraMin > 0 ? totalExtraMin + " मिनट" : "-";
+        document.getElementById('totalAmountFoot').innerText = "₹" + totalAmount;
+
+        renderTableBodyOnly();
     }
 
-    function generate30DaysCalendar() {
-        waterDates = [];
-        let startDateVal = document.getElementById('startDateInput').value;
-        if(!startDateVal) {
-            let today = new Date();
-            startDateVal = today.toISOString().split('T')[0];
-            document.getElementById('startDateInput').value = startDateVal;
-        }
-        
-        let gap = parseInt(document.getElementById('intervalInput').value) || 1;
-        let currDate = new Date(startDateVal);
-
-        for(let i = 0; i < 30; i++) {
-            let dateStr = currDate.toLocaleDateString('hi-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            let dayName = currDate.toLocaleDateString('hi-IN', { weekday: 'short' });
-            waterDates.push(`${dateStr} (${dayName})`);
-            currDate.setDate(currDate.getDate() + gap);
-        }
-
-        let datesList = document.getElementById('datesList');
-        datesList.innerHTML = "";
-        waterDates.forEach(d => {
-            let li = document.createElement('li');
-            li.innerText = d;
-            datesList.appendChild(li);
-        });
-    }
-
-    function toggleFullChart() {
-        let box = document.getElementById('fullChartBox');
-        box.style.display = box.style.display === 'none' || box.style.display === '' ? 'block' : 'none';
-    }
-
-    function populateSelectOptions() {
-        let select = document.getElementById('userSelect');
-        select.innerHTML = '<option value="">-- नाम चुनें --</option>';
-        initialData.forEach((item, index) => {
-            let opt = document.createElement('option');
-            opt.value = index;
-            opt.innerText = item.name;
-            select.appendChild(opt);
-        });
-    }
-
-    function findMyTurn() {
-        let idx = document.getElementById('userSelect').value;
-        let resultBox = document.getElementById('turnResult');
-        let printBtn = document.getElementById('printSlipBtn');
-
-        if(idx === "") {
-            resultBox.innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
-            printBtn.style.display = 'none';
-            return;
-        }
-
-        let item = initialData[idx];
-        let date1 = waterDates[0] || "उपलब्ध नहीं";
-        let date2 = waterDates[1] || "उपलब्ध नहीं";
-
-        let html = `<b>👤 सदस्य का नाम:</b> ${item.name}<br>`;
-        html += `<b>🌾 कुल भूमि:</b> ${item.bigha} बीघा<br>`;
-        html += `<b>⏱️ सिंचाई का समय:</b> ${Math.floor(item.calculatedMin/60)} घंटे ${item.calculatedMin%60} मिनट (${item.calculatedMin} मिनट)<br>`;
-        html += `<b>⏰ समय सीमा:</b> ${item.startTime} से ${item.endTime} तक<br>`;
-        
-        if(selectedMode === "oddeven") {
-            html += `<hr style="margin:5px 0; border:none; border-top:1px dashed #27ae60;">`;
-            html += `<b>📅 अगली सिंचाई तारीखें:</b><br>`;
-            html += `• बारी 1: <b>${date1}</b><br>`;
-            html += `• बारी 2: <b>${date2}</b>`;
-        } else {
-            html += `<hr style="margin:5px 0; border:none; border-top:1px dashed #27ae60;">`;
-            html += `<b>📅 अगली सिंचाई तारीख:</b> <b>${date1}</b>`;
-        }
-
-        resultBox.innerHTML = html;
-        printBtn.style.display = 'block';
-    }
-
-    function renderTable() {
-        calculateAll();
-        populateSelectOptions();
-
+    function renderTableBodyOnly() {
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
 
-        let adminBlocks = document.querySelectorAll('.admin-only-block');
-        adminBlocks.forEach(el => el.style.display = isAdmin ? 'block' : 'none');
+        let selectedUser = document.getElementById('userSelect').value;
 
-        document.getElementById('floatingSaveBtn').style.display = isAdmin ? 'block' : 'none';
-        document.getElementById('actionHeader').style.display = isAdmin ? 'table-cell' : 'none';
-
-        let tableWrapper = document.getElementById('tableWrapper');
-        if(isAdmin || isTablePublic) {
-            tableWrapper.style.display = 'block';
-        } else {
-            tableWrapper.style.display = 'none';
-        }
-
-        let bottomWrapper = document.getElementById('bottomNoticeCardWrapper');
-        if(isAdmin || isBottomNoticePublic) {
-            bottomWrapper.style.display = 'block';
-        } else {
-            bottomWrapper.style.display = 'none';
-        }
-
-        let toggleTableBtn = document.getElementById('toggleTableVisibilityBtn');
-        if(isTablePublic) {
-            toggleTableBtn.innerText = "🔓 मेन सारणी (Table) पब्लिक रखें: चालू";
-            toggleTableBtn.style.background = "#27ae60";
-        } else {
-            toggleTableBtn.innerText = "🔒 मेन सारणी (Table) पब्लिक रखें: बंद";
-            toggleTableBtn.style.background = "#e74c3c";
-        }
-
-        let toggleBottomBtn = document.getElementById('toggleBottomNoticeBtn');
-        if(isBottomNoticePublic) {
-            toggleBottomBtn.innerText = "🔓 बॉटम संदेश बॉक्स (Public): चालू";
-            toggleBottomBtn.style.background = "#27ae60";
-        } else {
-            toggleBottomBtn.innerText = "🔒 बॉटम संदेश बॉक्स (Public): बंद";
-            toggleBottomBtn.style.background = "#e74c3c";
-        }
-
-        initialData.forEach((item, index) => {
+        initialData.forEach((d, idx) => {
             let tr = document.createElement('tr');
-
-            let h = Math.floor(item.calculatedMin / 60);
-            let m = item.calculatedMin % 60;
-            let hmStr = `${h > 0 ? h + ' घंटे ' : ''}${m} मिनट`;
-
-            let rowHtml = `
-                <td>${index + 1}</td>
-                <td>${isAdmin ? `<input type="text" class="clean-input" value="${item.name}" onchange="updateRowData(${index}, 'name', this.value)">` : item.name}</td>
-                <td>${isAdmin ? `<input type="number" class="clean-input" style="width:60px;" value="${item.bigha}" step="0.1" onchange="updateRowData(${index}, 'bigha', this.value)">` : item.bigha}</td>
-                <td class="red-txt">${item.calculatedMin}</td>
-                <td class="red-txt">${hmStr}</td>
-                <td>${isAdmin ? `<input type="number" class="clean-input" style="width:60px;" value="${item.extra || ''}" placeholder="0" onchange="updateRowData(${index}, 'extra', this.value)">` : (item.extra || '-')}</td>
-                <td class="red-txt">${item.startTime}</td>
-                <td class="red-txt">${item.endTime}</td>
-                <td>${isAdmin ? `<input type="number" class="clean-input" style="width:70px;" value="${item.amount || ''}" placeholder="₹" onchange="updateRowData(${index}, 'amount', this.value)">` : (item.amount ? '₹'+item.amount : '-')}</td>
-                <td>${isAdmin ? `<input type="text" class="clean-input" style="width:90px;" value="${item.date || ''}" placeholder="DD-MM-YYYY" onchange="updateRowData(${index}, 'date', this.value)">` : (item.date || '-')}</td>
-                <td><button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️ पर्ची</button></td>
-            `;
-
-            if(isAdmin) {
-                rowHtml += `
-                    <td>
-                        <button class="btn-move" onclick="moveRow(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
-                        <button class="btn-move" onclick="moveRow(${index}, 1)" ${index === initialData.length - 1 ? 'disabled' : ''}>▼</button>
-                        <button class="btn-insert" onclick="insertRow(${index})">┼ जोड़ें</button>
-                        <button class="btn-delete" onclick="deleteRow(${index})">✕ हटाएं</button>
-                    </td>
-                `;
+            if (selectedUser && d.name === selectedUser) {
+                tr.classList.add('highlight-row');
             }
 
+            let actionTd = isAdmin ? `
+                <td style="min-width:210px;">
+                    <button class="btn-move" onclick="moveRow(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>⬆️</button>
+                    <button class="btn-move" onclick="moveRow(${idx}, 1)" ${idx === initialData.length - 1 ? 'disabled' : ''}>⬇️</button>
+                    <button class="btn-insert" onclick="insertRow(${idx})">➕ जोड़े</button>
+                    <button class="btn-delete" onclick="deleteRow(${idx})">🗑️ हटाएं</button>
+                </td>
+            ` : '';
+
+            let rowHtml = `
+                <td class="info-col">${idx + 1}</td>
+                <td class="info-col">${isAdmin ? `<input type="text" class="clean-input" style="width:140px; font-weight:bold;" value="${d.name}" onchange="updateRowData(${idx}, 'name', this.value)">` : d.name}</td>
+                <td class="info-col">${isAdmin ? `<input type="number" step="0.1" class="clean-input" style="width:55px; text-align:center;" value="${d.bigha}" oninput="updateRowData(${idx}, 'bigha', this.value)">` : d.bigha}</td>
+                <td class="red-txt">${d.calculatedMin || 0}</td>
+                <td class="red-txt">${formatHM(d.calculatedMin || 0)}</td>
+                <td class="red-txt">${isAdmin ? `<input type="number" class="clean-input" style="width:50px; text-align:center;" value="${d.extra || ''}" placeholder="0" oninput="updateRowData(${idx}, 'extra', this.value)">` : (d.extra ? d.extra + " मि" : "-")}</td>
+                <td class="red-txt" style="font-weight:bold;">${d.startTimeFormatted || ''}</td>
+                <td class="red-txt" style="font-weight:bold;">${d.endTimeFormatted || ''}</td>
+                <td>${isAdmin ? `<input type="number" class="clean-input" style="width:60px; text-align:center;" value="${d.amount || ''}" placeholder="₹" oninput="updateRowData(${idx}, 'amount', this.value)">` : (d.amount ? "₹" + d.amount : "-")}</td>
+                <td>${isAdmin ? `<input type="text" class="clean-input" style="width:85px; text-align:center;" value="${d.date || ''}" placeholder="DD-MM-YYYY" onchange="updateRowData(${idx}, 'date', this.value)">` : (d.date || "-")}</td>
+                <td><button class="btn-row-print" onclick="printSingleSlipFromRow(${idx})">🖨️ पर्ची</button></td>
+                ${actionTd}
+            `;
             tr.innerHTML = rowHtml;
             tbody.appendChild(tr);
         });
     }
 
-    function updateRowData(index, field, value) {
-        initialData[index][field] = value;
-        renderTable();
+    function updateRowData(index, field, val) {
+        if(field === 'bigha' || field === 'extra' || field === 'amount') {
+            initialData[index][field] = val === "" ? "" : parseFloat(val);
+        } else {
+            initialData[index][field] = val;
+        }
+        calculateAll();
+        populateUserDropdown();
     }
 
     function insertRow(index) {
@@ -882,53 +780,218 @@
     }
 
     function deleteRow(index) {
-        if(confirm("क्या आप वाकई इस सदस्य को हटाना चाहते हैं?")) {
+        if(confirm(`क्या आप ${initialData[index].name} को सूची से हटाना चाहते हैं?`)) {
             initialData.splice(index, 1);
             renderTable();
         }
     }
 
-    function generateSlipHTML(item, isSingle = false) {
-        let date1 = waterDates[0] || "उपलब्ध नहीं";
-        let date2 = waterDates[1] || "उपलब्ध नहीं";
+    function populateUserDropdown() {
+        let userSelect = document.getElementById('userSelect');
+        let currentVal = userSelect.value;
+        userSelect.innerHTML = `<option value="">-- नाम चुनें --</option>`;
+        
+        initialData.forEach(d => {
+            let opt = document.createElement('option');
+            opt.value = d.name;
+            opt.innerText = d.name;
+            userSelect.appendChild(opt);
+        });
+        
+        userSelect.value = currentVal;
+    }
+
+    function generate30DaysCalendar() {
+        let startDateInput = document.getElementById('startDateInput').value;
+        let gapDays = parseInt(document.getElementById('intervalInput').value) || 1;
+        
+        if(!startDateInput) {
+            let today = new Date();
+            let yyyy = today.getFullYear();
+            let mm = String(today.getMonth() + 1).padStart(2, '0');
+            let dd = String(today.getDate()).padStart(2, '0');
+            startDateInput = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('startDateInput').value = startDateInput;
+        }
+
+        waterDates = [];
+        let listEl = document.getElementById('datesList');
+        listEl.innerHTML = "";
+
+        let baseDate = new Date(startDateInput);
+        let daysOfWeek = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
+
+        for(let i = 0; i < 15; i++) {
+            let d = new Date(baseDate);
+            d.setDate(baseDate.getDate() + (i * gapDays));
+            
+            let dateStr = d.toLocaleDateString('hi-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            let dayName = daysOfWeek[d.getDay()];
+            let fullStr = `${dateStr} (${dayName})`;
+
+            waterDates.push(fullStr);
+
+            let li = document.createElement('li');
+            li.innerText = fullStr;
+            listEl.appendChild(li);
+        }
+
+        findMyTurn();
+    }
+
+    function toggleFullChart() {
+        let box = document.getElementById('fullChartBox');
+        box.style.display = box.style.display === 'none' || box.style.display === '' ? 'block' : 'none';
+    }
+
+    function findMyTurn() {
+        let selectedUser = document.getElementById('userSelect').value;
+        let resultBox = document.getElementById('turnResult');
+        let printBtn = document.getElementById('printSlipBtn');
+
+        if(!selectedUser) {
+            resultBox.innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
+            printBtn.style.display = "none";
+            renderTableBodyOnly();
+            return;
+        }
+
+        printBtn.style.display = "block";
+        let userIndex = initialData.findIndex(d => d.name === selectedUser);
+        let userData = initialData[userIndex];
+
+        if(!userData) return;
+
+        let totalMembers = initialData.length;
+        let straightIndex = userIndex;
+        let reverseIndex = totalMembers - 1 - userIndex;
+
+        let datesHtml = "";
+        
+        waterDates.slice(0, 6).forEach((dStr, idx) => {
+            let isStraightTurn = (idx % 2 === 0); 
+            let turnOrder = "";
+
+            if(selectedMode === "oddeven") {
+                turnOrder = isStraightTurn ? `सीधा क्रम (नंबर ${straightIndex + 1})` : `उल्टा क्रम (नंबर ${reverseIndex + 1})`;
+            } else {
+                turnOrder = `सीधा क्रम (नंबर ${straightIndex + 1})`;
+            }
+
+            datesHtml += `<li><b>${dStr}</b>: ${turnOrder}</li>`;
+        });
+
+        let amountStatus = userData.amount ? `<span style="color:#27ae60;">₹${userData.amount} (प्राप्त तारीख: ${userData.date || 'दर्ज नहीं'})</span>` : `<span style="color:#c0392b;">बकाया (जमा नहीं हुआ)</span>`;
+
+        resultBox.innerHTML = `
+            <b style="font-size:15px; color:#1a5276;">👤 ${userData.name}</b><br>
+            🌾 बीघा: <b>${userData.bigha}</b> | ⏱️ कुल समय: <b>${formatHM(userData.calculatedMin)}</b> (${userData.calculatedMin} मिनट)<br>
+            🕒 समय: <b>${userData.startTimeFormatted}</b> से <b>${userData.endTimeFormatted}</b> तक<br>
+            💰 पानी शुल्क स्टेटस: ${amountStatus}
+            <div style="margin-top:8px; border-top:1px dashed #27ae60; padding-top:6px;">
+                <b>🗓️ आने वाली अगली सिंचाइयों की तारीखें:</b>
+                <ul style="margin:4px 0; padding-left:20px; font-size:12px;">${datesHtml}</ul>
+            </div>
+        `;
+
+        renderTableBodyOnly();
+    }
+
+    function renderTable() {
+        populateUserDropdown();
+
+        let adminBlocks = document.querySelectorAll('.admin-only-block');
+        adminBlocks.forEach(el => el.style.display = isAdmin ? 'block' : 'none');
+
+        document.getElementById('actionHeader').style.display = isAdmin ? 'table-cell' : 'none';
+        document.getElementById('floatingSaveBtn').style.display = isAdmin ? 'block' : 'none';
+
+        let editBtn = document.getElementById('editToggleBtn');
+        if(isAdmin) {
+            editBtn.innerText = "🔓 Admin Mode (ON)";
+            editBtn.style.background = "#27ae60";
+        } else {
+            editBtn.innerText = "🔐 Admin Edit";
+            editBtn.style.background = "#34495e";
+        }
+
+        let toggleTableBtn = document.getElementById('toggleTableVisibilityBtn');
+        toggleTableBtn.innerText = isTablePublic ? "🔓 मेन सारणी (Table) पब्लिक रखें: चालू" : "🔒 मेन सारणी (Table) पब्लिक रखें: बंद";
+        toggleTableBtn.style.background = isTablePublic ? "#27ae60" : "#e74c3c";
+
+        let toggleBottomNoticeBtn = document.getElementById('toggleBottomNoticeBtn');
+        toggleBottomNoticeBtn.innerText = isBottomNoticePublic ? "🔓 बॉटम संदेश बॉक्स (Public): चालू" : "🔒 बॉटम संदेश बॉक्स (Public): बंद";
+        toggleBottomNoticeBtn.style.background = isBottomNoticePublic ? "#27ae60" : "#e74c3c";
+
+        document.getElementById('tableWrapper').style.display = (isAdmin || isTablePublic) ? 'block' : 'none';
+        document.getElementById('bottomNoticeCardWrapper').style.display = (isAdmin || isBottomNoticePublic) ? 'block' : 'none';
+
+        calculateAll();
+    }
+
+    function generateSlipHTML(d, idx) {
+        let totalMembers = initialData.length;
+        let straightIndex = idx;
+        let reverseIndex = totalMembers - 1 - idx;
+
+        let datesListHtml = "";
+        waterDates.slice(0, 6).forEach((dStr, dateIdx) => {
+            let isStraightTurn = (dateIdx % 2 === 0);
+            let turnOrder = "";
+
+            if(selectedMode === "oddeven") {
+                turnOrder = isStraightTurn ? `सीधा (नंबर ${straightIndex + 1})` : `उल्टा (नंबर ${reverseIndex + 1})`;
+            } else {
+                turnOrder = `सीधा (नंबर ${straightIndex + 1})`;
+            }
+
+            datesListHtml += `<div>• <b>${dStr}</b> - ${turnOrder}</div>`;
+        });
+
+        let amountText = d.amount ? `₹${d.amount} (प्राप्त: ${d.date || 'हाँ'})` : 'बकाया';
 
         return `
             <div class="slip-box">
-                <div class="slip-title">पानी सिंचाई वितरण पर्ची</div>
-                <div class="slip-item"><b>सदस्य नाम:</b> ${item.name}</div>
-                <div class="slip-item"><b>भूमि:</b> ${item.bigha} बीघा</div>
-                <div class="slip-item"><b>समय:</b> ${Math.floor(item.calculatedMin/60)} घंटे ${item.calculatedMin%60} मिनट (${item.calculatedMin} मि.)</div>
-                <div class="slip-item"><b>समय सीमा:</b> ${item.startTime} से ${item.endTime} तक</div>
-                <div class="slip-item"><b>सिंचाई तारीख:</b> ${selectedMode === 'oddeven' ? `${date1}, ${date2}` : date1}</div>
-                ${item.amount ? `<div class="slip-item"><b>प्राप्त राशि:</b> ₹${item.amount} (${item.date || ''})</div>` : ''}
-                <div class="slip-footer">कृपया अपने निर्धारित समय पर पानी का उपयोग करें।</div>
+                <div class="slip-title">💧 सिंचाई पर्ची (Irrigation Slip)</div>
+                <div class="slip-item"><b>नाम:</b> ${d.name}</div>
+                <div class="slip-item"><b>बीघा:</b> ${d.bigha} | <b>समय:</b> ${formatHM(d.calculatedMin)}</div>
+                <div class="slip-item"><b>सिंचाई समय:</b> ${d.startTimeFormatted} से ${d.endTimeFormatted}</div>
+                <div class="slip-item"><b>शुल्क विवरण:</b> ${amountText}</div>
+                <div class="slip-item" style="margin-top:4px; border-top:1px dashed #888; padding-top:4px;">
+                    <b>🗓️ आगामी सिंचाई तारीखें:</b>
+                    <div style="font-size:9.5px; margin-top:2px;">${datesListHtml}</div>
+                </div>
+                <div class="slip-footer">जल ही जीवन है • समय पर सिंचाई करें</div>
             </div>
         `;
     }
 
-    function printSingleSlip(index) {
-        let printArea = document.getElementById('printableArea');
-        printArea.className = "single-slip-mode";
-        printArea.innerHTML = generateSlipHTML(initialData[index], true);
-        window.print();
+    function printSelectedSlip() {
+        let selectedUser = document.getElementById('userSelect').value;
+        if(!selectedUser) return;
+        let idx = initialData.findIndex(d => d.name === selectedUser);
+        if(idx !== -1) printSingleSlipFromRow(idx);
     }
 
-    function printSelectedSlip() {
-        let idx = document.getElementById('userSelect').value;
-        if(idx !== "") printSingleSlip(idx);
+    function printSingleSlipFromRow(idx) {
+        let printArea = document.getElementById('printableArea');
+        printArea.className = "single-slip-mode";
+        printArea.innerHTML = generateSlipHTML(initialData[idx], idx);
+        window.print();
     }
 
     function printAllSlips() {
         let printArea = document.getElementById('printableArea');
         printArea.className = "";
-        let html = "";
-        initialData.forEach(item => {
-            html += generateSlipHTML(item, false);
+        let fullHtml = "";
+        initialData.forEach((d, idx) => {
+            fullHtml += generateSlipHTML(d, idx);
         });
-        printArea.innerHTML = html;
+        printArea.innerHTML = fullHtml;
         window.print();
     }
 
+    // Window Load Init
     window.onload = function() {
         loadDataFromCloud();
     };
