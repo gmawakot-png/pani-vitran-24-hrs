@@ -86,6 +86,7 @@
         }
 
         .result-box { margin-top: 10px; padding: 12px; background: #ffffff; border: 2px solid #27ae60; border-radius: 6px; font-size: 13px; line-height: 1.6; }
+        .due-msg { margin-top: 8px; padding-top: 6px; border-top: 1px dashed #e74c3c; color: #c0392b; font-weight: bold; }
 
         .summary-table { width: 100%; border-collapse: collapse; }
         .summary-table td { padding: 5px 6px; font-size: 13px; border-bottom: 1px dashed #cbd5e1; }
@@ -95,6 +96,7 @@
         table.main-table th, table.main-table td { border: 1px solid #cbd5e1; padding: 6px 5px; text-align: center; white-space: nowrap; }
         table.main-table th { background-color: #ebedef; font-weight: bold; color: #2c3e50; }
         table.main-table th.red-txt, table.main-table td.red-txt { color: #c0392b; }
+        tr.highlight-row { background-color: #d4efdf !important; font-weight: bold; }
         
         .admin-only-block { display: none; }
         
@@ -229,7 +231,7 @@
 
 <div class="container">
     <div class="header-bar">
-        <h2>पानी सिंचाई वितरण सारणी ( सीधी और उल्टी बारी )</h2>
+        <h2>पानी सिंचाई वितरण सारणी</h2>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div class="live-clock-box">
                 🌐 <span id="liveClock">00:00:00 AM</span>
@@ -339,7 +341,7 @@
             <thead>
                 <tr>
                     <th style="width: 45px;" class="info-col">S.No</th>
-                    <th class="info-col" style="min-width: 150px;">नाम</th>
+                    <th class="info-col">नाम</th>
                     <th class="info-col">बीघा</th>
                     <th class="red-txt">मिनट</th>
                     <th class="red-txt">घंटे /मिनट</th>
@@ -356,8 +358,8 @@
             <tfoot>
                 <tr style="background:#f2f2f2; font-weight:bold;">
                     <td colspan="3" class="info-col">कुल बीघा: <span id="totalBighaFoot">-</span></td>
-                    <td id="totalMinFoot">0</td>
-                    <td id="totalHMFoot">0 मिनट</td>
+                    <td id="totalMinFoot">657</td>
+                    <td id="totalHMFoot">10 घंटे 57 मिनट</td>
                     <td id="totalExtraFoot" class="red-txt">-</td>
                     <td colspan="2"></td>
                     <td id="totalAmountFoot" style="color:#27ae60; font-size:13px;">0</td>
@@ -413,20 +415,40 @@
 </div>
 
 <script>
-    // 🌟 आपका नया गूगल शीट वेब ऐप URL (Updated Live Sync Link) 🌟
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyJY-p9eKCt3Wq7yE3UHHqxb77t0EtQuqELpkIIU926d5hrZQI3I0UBzMMmGLhDuXTswA/exec";
+    const BIN_ID = "6a675d6dda38895dfe966712"; 
+    const MASTER_KEY = "$2a$10$JcvEWN7NJzepZ2xuDKG9g.Gjn/jzPPDh0sUxMcf2OyILulzPFrWoi"; 
+    const ACCESS_KEY = "$2a$10$ag8oztyaiCZ0sbItUNyZC.ZttjN7p1zmuJMDkX3tT9C/5dGSsLT2G"; 
 
     let isAdmin = false;
     let adminPassword = "2050"; 
     let noticeMessage = "";
     let bottomNoticeMessage = ""; 
-    let isTablePublic = true; 
-    let isBottomNoticePublic = true; 
+    let isTablePublic = false; 
+    let isBottomNoticePublic = false; 
     let selectedMode = "straight"; 
     let waterDates = [];
     let debounceTimer;
 
-    let initialData = [];
+    let initialData = [
+        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, extra: 40, amount: "", date: "" },
+        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, extra: "", amount: "", date: "" },
+        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, extra: "", amount: "", date: "" },
+        { name: "श्री राजेश कुमार जी", bigha: 2, extra: "", amount: "", date: "" },
+        { name: "श्री कांता डबराल जी", bigha: 0.5, extra: "", amount: "", date: "" },
+        { name: "श्रीमती बसंती देवी", bigha: 1, extra: "", amount: "", date: "" },
+        { name: "श्री विपिन खंतवाल", bigha: 3, extra: "", amount: "", date: "" },
+        { name: "श्रीमती उषा देवी", bigha: 2, extra: "", amount: "", date: "" },
+        { name: "श्रीमती अंजू देवी", bigha: 2, extra: "", amount: "", date: "" },
+        { name: "गणेश", bigha: 3.5, extra: "", amount: "", date: "" },
+        { name: "श्रीमती गीता देवी", bigha: 2, extra: "", amount: "", date: "" },
+        { name: "श्रीमती मनीषा देवी", bigha: 2, extra: "", amount: "", date: "" },
+        { name: "श्री राजू बिष्ट", bigha: 7, extra: "", amount: "", date: "" },
+        { name: "श्रीमती मनीषा देवी २", bigha: 2, extra: "", amount: "", date: "" },
+        { name: "श्रीमती पिंकी देवी", bigha: 2, extra: "", amount: "", date: "" },
+        { name: "श्री मस्तान सिंह जी", bigha: 0.5, extra: "", amount: "", date: "" },
+        { name: "श्रीमती पुनीता देवी", bigha: 0.5, extra: "", amount: "", date: "" },
+        { name: "श्रीमती जस्सी देवी", bigha: 3, extra: "", amount: 100, date: "25-07-2026" }
+    ];
 
     function updateLiveClock() {
         let now = new Date();
@@ -470,18 +492,6 @@
         if (newIndex < 0 || newIndex >= initialData.length) return;
         [initialData[index], initialData[newIndex]] = [initialData[newIndex], initialData[index]];
         renderTable();
-    }
-
-    function insertRow(index) {
-        initialData.splice(index + 1, 0, { name: "नया सदस्य", bigha: 1, extra: 0, amount: "", date: "" });
-        renderTable();
-    }
-
-    function deleteRow(index) {
-        if(confirm("क्या आप इस सदस्य को हटाना चाहते हैं?")) {
-            initialData.splice(index, 1);
-            renderTable();
-        }
     }
 
     function reverseArrayData() {
@@ -538,7 +548,7 @@
             if(newP && newP.trim() !== "") {
                 adminPassword = newP.trim();
                 closeChangePassModal();
-                alert("पासवर्ड बदल दिया गया!");
+                alert("पासवर्ड बदल दिया गया! कृपया क्लाउड पर सेव करें।");
             } else {
                 alert("कृपया नया पासवर्ड दर्ज करें!");
             }
@@ -547,348 +557,395 @@
         }
     }
 
-    // 🌟 गूगल शीट से डेटा पढ़ना (Auto-Sync) 🌟
-    async function loadDataFromSheet() {
+    async function loadDataFromCloud() {
         try {
-            let res = await fetch(GOOGLE_SHEET_URL + "?action=read");
-            if (!res.ok) throw new Error("Google Sheet से डेटा नहीं मिल सका");
-            let json = await res.json();
-            
-            if (json && json.data && json.data.length > 0) {
-                if (!isAdmin) {
-                    initialData = json.data;
-                    if(json.noticeMessage !== undefined) updateNoticeText(json.noticeMessage);
-                    if(json.bottomNoticeMessage !== undefined) updateBottomNoticeText(json.bottomNoticeMessage);
-                    if(json.isTablePublic !== undefined) isTablePublic = json.isTablePublic;
-                    if(json.isBottomNoticePublic !== undefined) isBottomNoticePublic = json.isBottomNoticePublic;
-                    renderTable();
+            let cacheBuster = new Date().getTime();
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?cb=${cacheBuster}`, {
+                method: 'GET',
+                headers: { 
+                    "X-Master-Key": MASTER_KEY,
+                    "X-Access-Key": ACCESS_KEY,
+                    "X-Bin-Meta": "false"
                 }
+            });
+            if (!res.ok) throw new Error("डेटा लोड करने में विफल");
+            let record = await res.json();
+            
+            if(record) {
+                if(record.users) initialData = record.users;
+                if(record.password) adminPassword = record.password;
+                if(record.notice) {
+                    noticeMessage = record.notice;
+                    document.getElementById('noticeInput').value = noticeMessage;
+                    updateNoticeText(noticeMessage);
+                }
+                if(record.bottomNotice) {
+                    bottomNoticeMessage = record.bottomNotice;
+                    document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
+                    updateBottomNoticeText(bottomNoticeMessage);
+                }
+                if(record.isTablePublic !== undefined) isTablePublic = record.isTablePublic;
+                if(record.isBottomNoticePublic !== undefined) isBottomNoticePublic = record.isBottomNoticePublic;
+                if(record.selectedMode) {
+                    selectedMode = record.selectedMode;
+                    let radios = document.getElementsByName('waterDistributionMode');
+                    radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
+                }
+                if(record.startDate) document.getElementById('startDateInput').value = record.startDate;
+                if(record.gapDays) document.getElementById('intervalInput').value = record.gapDays;
+
+                if(record.totalPoolHours !== undefined) document.getElementById('totalPoolHours').value = record.totalPoolHours;
+                if(record.hoursToDistribute !== undefined) document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
+                if(record.startTime !== undefined) document.getElementById('startTime').value = record.startTime;
             }
         } catch(e) {
-            console.error("Sheet Sync Error:", e);
+            console.error("Error loading cloud data:", e);
+        } finally {
+            generate30DaysCalendar();
+            renderTable();
         }
     }
 
-    // 🌟 गूगल शीट में डेटा सेव करना (Save to Cloud) 🌟
     async function saveDataToCloud() {
-        let saveBtn = document.getElementById('floatingSaveBtn');
         let saveBtnMain = document.getElementById('saveBtnMain');
-        if(saveBtn) saveBtn.innerText = "⏳ सेव हो रहा है...";
-        if(saveBtnMain) saveBtnMain.innerText = "⏳ सेव हो रहा है...";
+        let floatBtn = document.getElementById('floatingSaveBtn');
+        
+        saveBtnMain.innerText = "⏳ सेव हो रहा है...";
+        floatBtn.innerText = "⏳ सेव हो रहा है...";
+        saveBtnMain.disabled = true;
+        floatBtn.disabled = true;
+
+        let payload = {
+            users: initialData,
+            password: adminPassword,
+            notice: noticeMessage,
+            bottomNotice: bottomNoticeMessage,
+            isTablePublic: isTablePublic,
+            isBottomNoticePublic: isBottomNoticePublic,
+            selectedMode: selectedMode,
+            startDate: document.getElementById('startDateInput').value,
+            gapDays: document.getElementById('intervalInput').value,
+            totalPoolHours: document.getElementById('totalPoolHours').value,
+            hoursToDistribute: document.getElementById('hoursToDistribute').value,
+            startTime: document.getElementById('startTime').value
+        };
 
         try {
-            let payload = {
-                data: initialData,
-                noticeMessage: noticeMessage,
-                bottomNoticeMessage: bottomNoticeMessage,
-                isTablePublic: isTablePublic,
-                isBottomNoticePublic: isBottomNoticePublic
-            };
-
-            let res = await fetch(GOOGLE_SHEET_URL, {
-                method: "POST",
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': MASTER_KEY,
+                    'X-Access-Key': ACCESS_KEY
+                },
                 body: JSON.stringify(payload)
             });
-
-            alert("✅ डेटा गूगल शीट पर सेव हो गया है! अब यह सभी के फोन में तुरंत दिखेगा।");
+            
+            if(res.ok) {
+                alert("✅ डेटा ऑनलाइन क्लाउड पर सफलता से सेव हो गया!");
+            } else {
+                let errJson = await res.json().catch(() => ({}));
+                alert("❌ डेटा सेव करने में समस्या आई: " + (errJson.message || "Permissions issue"));
+            }
         } catch(e) {
-            alert("⚠️ क्लाउड सेव में समस्या आई, कृपया इंटरनेट जांचें।");
-            console.error(e);
+            alert("❌ नेटवर्क/सर्वर एरर: " + e.message);
         } finally {
-            if(saveBtn) saveBtn.innerText = "💾 सभी बदलाव क्लाउड पर सेव करें";
-            if(saveBtnMain) saveBtnMain.innerText = "☁️ ऑनलाइन क्लाउड पर सेव करें";
+            saveBtnMain.innerText = "☁️ ऑनलाइन क्लाउड पर सेव करें";
+            floatBtn.innerText = "💾 सभी बदलाव क्लाउड पर सेव करें";
+            saveBtnMain.disabled = false;
+            floatBtn.disabled = false;
         }
     }
 
-    function updateData(index, key, value) {
-        initialData[index][key] = value;
-        calculateAll();
+    function timeToMinutes(timeStr) {
+        let parts = timeStr.trim().split(" ");
+        let time = parts[0].split(":");
+        let hours = parseInt(time[0]);
+        let minutes = parseInt(time[1]);
+        let period = parts[1] ? parts[1].toUpperCase() : 'AM';
+        
+        if (period === "PM" && hours < 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+    }
+
+    function minutesToTime(mins) {
+        let hours = Math.floor(mins / 60) % 24;
+        let minutes = Math.round(mins % 60);
+        let period = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        if (hours === 0) hours = 12;
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${period}`;
+    }
+
+    function calculateAll() {
+        let totalPoolHours = parseFloat(document.getElementById('totalPoolHours').value) || 12;
+        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 11;
+        let startTimeStr = document.getElementById('startTime').value || "07:00:00 AM";
+
+        let totalBigha = initialData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
+        document.getElementById('sumBigha').innerText = totalBigha;
+        document.getElementById('totalBighaFoot').innerText = totalBigha;
+
+        let minutesToDistribute = hoursToDistribute * 60;
+        let minutePerBigha = totalBigha > 0 ? minutesToDistribute / totalBigha : 0;
+
+        let currentMins = timeToMinutes(startTimeStr);
+        let totalCalculatedMinutes = 0;
+        let totalAmount = 0;
+
+        initialData.forEach((item) => {
+            let baseMin = (parseFloat(item.bigha) || 0) * minutePerBigha;
+            let extraMin = parseFloat(item.extra) || 0;
+            let totalItemMin = Math.round(baseMin + extraMin);
+
+            item.calculatedMin = totalItemMin;
+            item.startTime = minutesToTime(currentMins);
+            currentMins += totalItemMin;
+            item.endTime = minutesToTime(currentMins);
+
+            totalCalculatedMinutes += totalItemMin;
+            if(item.amount) totalAmount += parseFloat(item.amount) || 0;
+        });
+
+        let distHours = Math.floor(totalCalculatedMinutes / 60);
+        let distMins = totalCalculatedMinutes % 60;
+        document.getElementById('displayDistributedHM').innerText = `${distHours} घंटे ${distMins} मिनट`;
+        document.getElementById('totalMinFoot').innerText = totalCalculatedMinutes;
+        document.getElementById('totalHMFoot').innerText = `${distHours} घंटे ${distMins} मिनट`;
+
+        let poolMins = Math.round(totalPoolHours * 60);
+        let remainingMins = poolMins - totalCalculatedMinutes;
+        let remHours = Math.floor(remainingMins / 60);
+        let remMins = remainingMins % 60;
+        
+        document.getElementById('displayTotalDistributionHM').innerText = `${Math.floor(poolMins/60)} घंटे ${poolMins%60} मिनट`;
+        document.getElementById('displayRemainingHours').innerText = `${remHours} घंटे ${remMins} मिनट`;
+        document.getElementById('totalAmountFoot').innerText = `₹${totalAmount}`;
     }
 
     function generate30DaysCalendar() {
-        let startVal = document.getElementById('startDateInput').value;
-        let gapDays = parseInt(document.getElementById('intervalInput').value);
-        if(isNaN(gapDays) || gapDays < 1) gapDays = 1;
-        if(!startVal) return;
-
         waterDates = [];
-        let startDateObj = new Date(startVal);
-        let tempDate = new Date(startDateObj);
-        for(let i = 0; i < 15; i++) {
-            let dateStr = tempDate.toLocaleDateString('hi-IN', { day: '2-digit', month: 'short' });
-            waterDates.push(dateStr);
-            tempDate.setDate(tempDate.getDate() + gapDays);
+        let startDateVal = document.getElementById('startDateInput').value;
+        if(!startDateVal) {
+            let today = new Date();
+            startDateVal = today.toISOString().split('T')[0];
+            document.getElementById('startDateInput').value = startDateVal;
         }
-        renderDatesList();
-        findMyTurn();
-    }
+        
+        let gap = parseInt(document.getElementById('intervalInput').value) || 1;
+        let currDate = new Date(startDateVal);
 
-    function renderDatesList() {
-        let listEl = document.getElementById('datesList');
-        listEl.innerHTML = "";
+        for(let i = 0; i < 30; i++) {
+            let dateStr = currDate.toLocaleDateString('hi-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            let dayName = currDate.toLocaleDateString('hi-IN', { weekday: 'short' });
+            waterDates.push(`${dateStr} (${dayName})`);
+            currDate.setDate(currDate.getDate() + gap);
+        }
+
+        let datesList = document.getElementById('datesList');
+        datesList.innerHTML = "";
         waterDates.forEach(d => {
             let li = document.createElement('li');
             li.innerText = d;
-            listEl.appendChild(li);
+            datesList.appendChild(li);
         });
     }
 
     function toggleFullChart() {
         let box = document.getElementById('fullChartBox');
-        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+        box.style.display = box.style.display === 'none' || box.style.display === '' ? 'block' : 'none';
     }
 
-    function populateDropdown() {
-        const select = document.getElementById('userSelect');
-        let currentVal = select.value;
+    function populateSelectOptions() {
+        let select = document.getElementById('userSelect');
         select.innerHTML = '<option value="">-- नाम चुनें --</option>';
-        initialData.forEach((row, idx) => {
+        initialData.forEach((item, index) => {
             let opt = document.createElement('option');
-            opt.value = idx;
-            opt.innerText = row.name;
+            opt.value = index;
+            opt.innerText = item.name;
             select.appendChild(opt);
         });
-        select.value = currentVal;
-    }
-
-    function calculateAll() {
-        let totalBigha = 0;
-        initialData.forEach(r => totalBigha += (parseFloat(r.bigha) || 0));
-
-        let hoursDist = parseFloat(document.getElementById('hoursToDistribute').value) || 11;
-        let totalMinAvailable = hoursDist * 60;
-        let minPerBigha = totalBigha > 0 ? (totalMinAvailable / totalBigha) : 0;
-
-        let startTimeStr = document.getElementById('startTime').value;
-        let currentTime = parseTimeString(startTimeStr);
-
-        let totalMinAllocated = 0;
-        let totalExtraMin = 0;
-        let totalAmount = 0;
-
-        initialData.forEach((row, idx) => {
-            let bighaMin = (parseFloat(row.bigha) || 0) * minPerBigha;
-            let extraMin = parseFloat(row.extra) || 0;
-            let finalMin = Math.round(bighaMin + extraMin);
-
-            row.calcMin = finalMin;
-            row.startTime = formatTime(currentTime);
-            currentTime = addMinutes(currentTime, finalMin);
-            row.endTime = formatTime(currentTime);
-
-            totalMinAllocated += finalMin;
-            totalExtraMin += extraMin;
-            totalAmount += (parseFloat(row.amount) || 0);
-        });
-
-        document.getElementById('sumBigha').innerText = totalBigha.toFixed(1);
-        document.getElementById('totalBighaFoot').innerText = totalBigha.toFixed(1);
-        document.getElementById('totalMinFoot').innerText = Math.round(totalMinAllocated);
-        document.getElementById('totalHMFoot').innerText = minutesToHM(totalMinAllocated);
-        document.getElementById('totalExtraFoot').innerText = totalExtraMin + " मि";
-        document.getElementById('totalAmountFoot').innerText = "₹ " + totalAmount;
-
-        document.getElementById('displayDistributedHM').innerText = minutesToHM(hoursDist * 60);
-        
-        let poolHours = parseFloat(document.getElementById('totalPoolHours').value) || 12;
-        document.getElementById('displayTotalDistributionHM').innerText = minutesToHM(poolHours * 60);
-        
-        let remainingMin = (poolHours * 60) - totalMinAllocated;
-        document.getElementById('displayRemainingHours').innerText = minutesToHM(remainingMin);
-
-        populateDropdown();
-        findMyTurn();
-    }
-
-    function parseTimeString(timeStr) {
-        let date = new Date();
-        let parts = timeStr.match(/(\d+):(\d+):?(\d+)?\s*(AM|PM)?/i);
-        if(!parts) return date;
-        let hours = parseInt(parts[1]);
-        let minutes = parseInt(parts[2]);
-        let ampm = parts[4];
-        if (ampm) {
-            if (ampm.toUpperCase() === "PM" && hours < 12) hours += 12;
-            if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
-        }
-        date.setHours(hours, minutes, 0, 0);
-        return date;
-    }
-
-    function addMinutes(date, minutes) {
-        return new Date(date.getTime() + minutes * 60000);
-    }
-
-    function formatTime(date) {
-        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    }
-
-    function minutesToHM(mins) {
-        let h = Math.floor(Math.abs(mins) / 60);
-        let m = Math.round(Math.abs(mins) % 60);
-        let str = `${h} घंटे ${m} मिनट`;
-        return mins < 0 ? "-" + str : str;
     }
 
     function findMyTurn() {
-        let select = document.getElementById('userSelect');
-        let val = select.value;
-        let resBox = document.getElementById('turnResult');
+        let idx = document.getElementById('userSelect').value;
+        let resultBox = document.getElementById('turnResult');
         let printBtn = document.getElementById('printSlipBtn');
 
-        if (val === "") {
-            resBox.innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
+        if(idx === "") {
+            resultBox.innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
             printBtn.style.display = 'none';
             return;
         }
 
-        let row = initialData[val];
-        if(!row) return;
+        let item = initialData[idx];
+        let date1 = waterDates[0] || "उपलब्ध नहीं";
+        let date2 = waterDates[1] || "उपलब्ध नहीं";
 
-        let dateText = waterDates.length > 0 ? waterDates[0] : "आज";
+        let html = `<b>👤 सदस्य का नाम:</b> ${item.name}<br>`;
+        html += `<b>🌾 कुल भूमि:</b> ${item.bigha} बीघा<br>`;
+        html += `<b>⏱️ सिंचाई का समय:</b> ${Math.floor(item.calculatedMin/60)} घंटे ${item.calculatedMin%60} मिनट (${item.calculatedMin} मिनट)<br>`;
+        html += `<b>⏰ समय सीमा:</b> ${item.startTime} से ${item.endTime} तक<br>`;
+        
+        if(selectedMode === "oddeven") {
+            html += `<hr style="margin:5px 0; border:none; border-top:1px dashed #27ae60;">`;
+            html += `<b>📅 अगली सिंचाई तारीखें:</b><br>`;
+            html += `• बारी 1: <b>${date1}</b><br>`;
+            html += `• बारी 2: <b>${date2}</b>`;
+        } else {
+            html += `<hr style="margin:5px 0; border:none; border-top:1px dashed #27ae60;">`;
+            html += `<b>📅 अगली सिंचाई तारीख:</b> <b>${date1}</b>`;
+        }
 
-        resBox.innerHTML = `
-            <b>👤 नाम:</b> ${row.name}<br>
-            <b>🌾 बीघा:</b> ${row.bigha} | <b>⏱️ समय:</b> ${minutesToHM(row.calcMin)} (${row.calcMin} मिनट)<br>
-            <b>⏰ सिंचाई समय:</b> <span style="color:#c0392b; font-weight:bold;">${row.startTime} से ${row.endTime} तक</span><br>
-            <b>📅 अगली तारीख:</b> ${dateText}
-        `;
+        resultBox.innerHTML = html;
         printBtn.style.display = 'block';
     }
 
     function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
+        calculateAll();
+        populateSelectOptions();
 
-        const showTable = isAdmin || isTablePublic;
-        document.getElementById('tableWrapper').style.display = showTable ? 'block' : 'none';
+        let tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "";
 
-        const showBottomNotice = isAdmin || isBottomNoticePublic;
-        document.getElementById('bottomNoticeCardWrapper').style.display = showBottomNotice ? 'block' : 'none';
+        let adminBlocks = document.querySelectorAll('.admin-only-block');
+        adminBlocks.forEach(el => el.style.display = isAdmin ? 'block' : 'none');
 
-        document.getElementById('actionHeader').style.display = isAdmin ? 'table-cell' : 'none';
         document.getElementById('floatingSaveBtn').style.display = isAdmin ? 'block' : 'none';
-        document.getElementById('editToggleBtn').innerText = isAdmin ? "🔓 Admin Active" : "🔐 Admin Edit";
+        document.getElementById('actionHeader').style.display = isAdmin ? 'table-cell' : 'none';
 
-        let tableToggleBtn = document.getElementById('toggleTableVisibilityBtn');
-        if(tableToggleBtn) {
-            tableToggleBtn.innerText = isTablePublic ? "👁️ मेन सारणी (Table) पब्लिक रखें: चालू" : "🔒 मेन सारणी (Table) पब्लिक रखें: बंद";
-            tableToggleBtn.style.background = isTablePublic ? "#3498db" : "#e74c3c";
+        let tableWrapper = document.getElementById('tableWrapper');
+        if(isAdmin || isTablePublic) {
+            tableWrapper.style.display = 'block';
+        } else {
+            tableWrapper.style.display = 'none';
         }
 
-        let bottomNoticeToggleBtn = document.getElementById('toggleBottomNoticeBtn');
-        if(bottomNoticeToggleBtn) {
-            bottomNoticeToggleBtn.innerText = isBottomNoticePublic ? "👁️ बॉटम संदेश बॉक्स (Public): चालू" : "🔒 बॉटम संदेश बॉक्स (Public): बंद";
-            bottomNoticeToggleBtn.style.background = isBottomNoticePublic ? "#3498db" : "#e74c3c";
+        let bottomWrapper = document.getElementById('bottomNoticeCardWrapper');
+        if(isAdmin || isBottomNoticePublic) {
+            bottomWrapper.style.display = 'block';
+        } else {
+            bottomWrapper.style.display = 'none';
         }
 
-        document.querySelectorAll('.admin-only-block').forEach(el => {
-            el.style.display = isAdmin ? 'block' : 'none';
-        });
+        let toggleTableBtn = document.getElementById('toggleTableVisibilityBtn');
+        if(isTablePublic) {
+            toggleTableBtn.innerText = "🔓 मेन सारणी (Table) पब्लिक रखें: चालू";
+            toggleTableBtn.style.background = "#27ae60";
+        } else {
+            toggleTableBtn.innerText = "🔒 मेन सारणी (Table) पब्लिक रखें: बंद";
+            toggleTableBtn.style.background = "#e74c3c";
+        }
 
-        initialData.forEach((row, index) => {
-            const tr = document.createElement('tr');
-            tr.id = `row-${index}`;
+        let toggleBottomBtn = document.getElementById('toggleBottomNoticeBtn');
+        if(isBottomNoticePublic) {
+            toggleBottomBtn.innerText = "🔓 बॉटम संदेश बॉक्स (Public): चालू";
+            toggleBottomBtn.style.background = "#27ae60";
+        } else {
+            toggleBottomBtn.innerText = "🔒 बॉटम संदेश बॉक्स (Public): बंद";
+            toggleBottomBtn.style.background = "#e74c3c";
+        }
+
+        initialData.forEach((item, index) => {
+            let tr = document.createElement('tr');
+
+            let h = Math.floor(item.calculatedMin / 60);
+            let m = item.calculatedMin % 60;
+            let hmStr = `${h > 0 ? h + ' घंटे ' : ''}${m} मिनट`;
+
+            let rowHtml = `
+                <td>${index + 1}</td>
+                <td>${isAdmin ? `<input type="text" class="clean-input" value="${item.name}" onchange="updateRowData(${index}, 'name', this.value)">` : item.name}</td>
+                <td>${isAdmin ? `<input type="number" class="clean-input" style="width:60px;" value="${item.bigha}" step="0.1" onchange="updateRowData(${index}, 'bigha', this.value)">` : item.bigha}</td>
+                <td class="red-txt">${item.calculatedMin}</td>
+                <td class="red-txt">${hmStr}</td>
+                <td>${isAdmin ? `<input type="number" class="clean-input" style="width:60px;" value="${item.extra || ''}" placeholder="0" onchange="updateRowData(${index}, 'extra', this.value)">` : (item.extra || '-')}</td>
+                <td class="red-txt">${item.startTime}</td>
+                <td class="red-txt">${item.endTime}</td>
+                <td>${isAdmin ? `<input type="number" class="clean-input" style="width:70px;" value="${item.amount || ''}" placeholder="₹" onchange="updateRowData(${index}, 'amount', this.value)">` : (item.amount ? '₹'+item.amount : '-')}</td>
+                <td>${isAdmin ? `<input type="text" class="clean-input" style="width:90px;" value="${item.date || ''}" placeholder="DD-MM-YYYY" onchange="updateRowData(${index}, 'date', this.value)">` : (item.date || '-')}</td>
+                <td><button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️ पर्ची</button></td>
+            `;
 
             if(isAdmin) {
-                tr.innerHTML = `
-                    <td class="info-col">${index + 1}</td>
-                    <td class="info-col" style="text-align: left;">
-                        <input type="text" class="clean-input" value="${row.name}" oninput="updateData(${index}, 'name', this.value)" style="min-width: 140px; text-align: left;">
-                    </td>
-                    <td class="info-col">
-                        <input type="number" class="clean-input" value="${row.bigha}" step="0.1" style="width:55px; text-align:center;" oninput="updateData(${index}, 'bigha', parseFloat(this.value)||0)">
-                    </td>
-                    <td class="col-min">${row.calcMin || 0}</td>
-                    <td class="col-hm">${minutesToHM(row.calcMin || 0)}</td>
+                rowHtml += `
                     <td>
-                        <input type="number" class="clean-input" value="${row.extra || 0}" style="width:50px; text-align:center;" oninput="updateData(${index}, 'extra', parseFloat(this.value)||0)">
+                        <button class="btn-move" onclick="moveRow(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                        <button class="btn-move" onclick="moveRow(${index}, 1)" ${index === initialData.length - 1 ? 'disabled' : ''}>▼</button>
+                        <button class="btn-insert" onclick="insertRow(${index})">┼ जोड़ें</button>
+                        <button class="btn-delete" onclick="deleteRow(${index})">✕ हटाएं</button>
                     </td>
-                    <td class="red-txt">${row.startTime || '-'}</td>
-                    <td class="red-txt">${row.endTime || '-'}</td>
-                    <td>
-                        <input type="text" class="clean-input" value="${row.amount || ''}" style="width:60px; text-align:center;" oninput="updateData(${index}, 'amount', this.value)">
-                    </td>
-                    <td>
-                        <input type="text" class="clean-input" value="${row.date || ''}" style="width:80px; text-align:center;" oninput="updateData(${index}, 'date', this.value)">
-                    </td>
-                    <td><button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️ पर्ची</button></td>
-                    <td>
-                        <button class="btn-move" onclick="moveRow(${index}, -1)">▲</button>
-                        <button class="btn-move" onclick="moveRow(${index}, 1)">▼</button>
-                        <button class="btn-insert" onclick="insertRow(${index})">+जोड़ें</button>
-                        <button class="btn-delete" onclick="deleteRow(${index})">✕हटाएं</button>
-                    </td>
-                `;
-            } else {
-                tr.innerHTML = `
-                    <td class="info-col">${index + 1}</td>
-                    <td class="info-col" style="text-align: left; font-weight:bold;">${row.name}</td>
-                    <td class="info-col">${row.bigha}</td>
-                    <td class="red-txt">${row.calcMin || 0}</td>
-                    <td class="red-txt">${minutesToHM(row.calcMin || 0)}</td>
-                    <td class="red-txt">${row.extra || '-'}</td>
-                    <td class="red-txt">${row.startTime || '-'}</td>
-                    <td class="red-txt">${row.endTime || '-'}</td>
-                    <td>${row.amount || '-'}</td>
-                    <td>${row.date || '-'}</td>
-                    <td><button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️ पर्ची</button></td>
                 `;
             }
+
+            tr.innerHTML = rowHtml;
             tbody.appendChild(tr);
         });
+    }
 
-        calculateAll();
+    function updateRowData(index, field, value) {
+        initialData[index][field] = value;
+        renderTable();
+    }
+
+    function insertRow(index) {
+        initialData.splice(index + 1, 0, { name: "नया सदस्य", bigha: 1, extra: "", amount: "", date: "" });
+        renderTable();
+    }
+
+    function deleteRow(index) {
+        if(confirm("क्या आप वाकई इस सदस्य को हटाना चाहते हैं?")) {
+            initialData.splice(index, 1);
+            renderTable();
+        }
+    }
+
+    function generateSlipHTML(item, isSingle = false) {
+        let date1 = waterDates[0] || "उपलब्ध नहीं";
+        let date2 = waterDates[1] || "उपलब्ध नहीं";
+
+        return `
+            <div class="slip-box">
+                <div class="slip-title">पानी सिंचाई वितरण पर्ची</div>
+                <div class="slip-item"><b>सदस्य नाम:</b> ${item.name}</div>
+                <div class="slip-item"><b>भूमि:</b> ${item.bigha} बीघा</div>
+                <div class="slip-item"><b>समय:</b> ${Math.floor(item.calculatedMin/60)} घंटे ${item.calculatedMin%60} मिनट (${item.calculatedMin} मि.)</div>
+                <div class="slip-item"><b>समय सीमा:</b> ${item.startTime} से ${item.endTime} तक</div>
+                <div class="slip-item"><b>सिंचाई तारीख:</b> ${selectedMode === 'oddeven' ? `${date1}, ${date2}` : date1}</div>
+                ${item.amount ? `<div class="slip-item"><b>प्राप्त राशि:</b> ₹${item.amount} (${item.date || ''})</div>` : ''}
+                <div class="slip-footer">कृपया अपने निर्धारित समय पर पानी का उपयोग करें।</div>
+            </div>
+        `;
     }
 
     function printSingleSlip(index) {
-        let row = initialData[index];
-        if(!row) return;
         let printArea = document.getElementById('printableArea');
         printArea.className = "single-slip-mode";
-        printArea.innerHTML = `
-            <div class="slip-box">
-                <div class="slip-title">पानी सिंचाई समय पर्ची</div>
-                <div class="slip-item"><b>क्रम संख्या:</b> ${index + 1}</div>
-                <div class="slip-item"><b>नाम:</b> ${row.name}</div>
-                <div class="slip-item"><b>बीघा:</b> ${row.bigha}</div>
-                <div class="slip-item"><b>कुल समय:</b> ${minutesToHM(row.calcMin)} (${row.calcMin} मिनट)</div>
-                <div class="slip-item"><b>सिंचाई समय:</b> ${row.startTime} से ${row.endTime} तक</div>
-                <div class="slip-footer">जल वितरण समिति • सिंचाई प्रबंधन</div>
-            </div>
-        `;
+        printArea.innerHTML = generateSlipHTML(initialData[index], true);
         window.print();
     }
 
     function printSelectedSlip() {
-        let val = document.getElementById('userSelect').value;
-        if(val !== "") printSingleSlip(parseInt(val));
+        let idx = document.getElementById('userSelect').value;
+        if(idx !== "") printSingleSlip(idx);
     }
 
     function printAllSlips() {
         let printArea = document.getElementById('printableArea');
         printArea.className = "";
         let html = "";
-        initialData.forEach((row, index) => {
-            html += `
-                <div class="slip-box">
-                    <div class="slip-title">पानी सिंचाई पर्ची</div>
-                    <div class="slip-item"><b>नाम:</b> ${row.name} (क्र. ${index + 1})</div>
-                    <div class="slip-item"><b>बीघा:</b> ${row.bigha} | <b>समय:</b> ${row.calcMin} मि</div>
-                    <div class="slip-item"><b>समय:</b> ${row.startTime} - ${row.endTime}</div>
-                </div>
-            `;
+        initialData.forEach(item => {
+            html += generateSlipHTML(item, false);
         });
         printArea.innerHTML = html;
         window.print();
     }
 
-    // शुरुआती डेटा लोड व 5 सेकंड ऑटो-रिफ्रेश सिंक
     window.onload = function() {
-        document.getElementById('startDateInput').valueAsDate = new Date();
-        loadDataFromSheet();
-        setInterval(loadDataFromSheet, 5000); // हर 5 सेकंड में ऑटो-सिंक जांच
+        loadDataFromCloud();
     };
 </script>
+
 </body>
 </html>
