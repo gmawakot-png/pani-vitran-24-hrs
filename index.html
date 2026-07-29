@@ -176,7 +176,7 @@
 
         @media screen and (max-width: 768px) {
             .clean-input, .input-group input, .input-group select {
-                font-size: 16px !important; /* Mobile Typing Focus Fix */
+                font-size: 16px !important;
             }
         }
 
@@ -338,7 +338,6 @@
                 <tr><td>कुल पानी वितरण समय:</td><td class="val" id="displayTotalDistributionHM">0 घंटे 0 मिनट</td></tr>
                 <tr><td>आखरी बचा समय:</td><td class="val" id="displayRemainingHours">0 मिनट</td></tr>
             </table>
-            <button class="btn-action" style="background:#16a085; margin-top:10px; font-size:12px;" onclick="exportToCSV()">📥 Excel/CSV में डाउनलोड करें</button>
         </div>
 
         <div class="controls-card admin-only-block" id="adminControls">
@@ -1066,29 +1065,6 @@
                 }
             }
         });
-    }
-
-    /* Excel / CSV डाउनलोड फ़ंक्शन */
-    function exportToCSV() {
-        let csv = [];
-        let rows = document.querySelectorAll("#scheduleTable tr");
-        
-        for (let i = 0; i < rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll("td, th");
-            for (let j = 0; j < cols.length - 2; j++) {
-                let text = cols[j].innerText || (cols[j].querySelector('input') ? cols[j].querySelector('input').value : '');
-                row.push('"' + text.replace(/"/g, '""') + '"');
-            }
-            csv.push(row.join(","));
-        }
-
-        let csvFile = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
-        let downloadLink = document.createElement("a");
-        downloadLink.download = "सिंचाई_समय_सारणी.csv";
-        downloadLink.href = window.URL.createObjectURL(csvFile);
-        downloadLink.style.display = "none";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
     }
 
     function printSelectedSlip() {
