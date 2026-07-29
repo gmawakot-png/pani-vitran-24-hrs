@@ -123,6 +123,7 @@
         .btn-move { background: #3498db; color: white; border: none; padding: 4px 8px; font-size: 12px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
         .btn-move:disabled { background: #bdc3c7; cursor: not-allowed; }
         .btn-delete { background: #e74c3c; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
+        .btn-lock { background: #e67e22; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
 
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -316,13 +317,13 @@
                     <th>बीघा</th>
                     <th class="red-txt">मिनट</th>
                     <th class="red-txt">घंटे /मिनट</th>
-                    <th class="red-txt">अतिरिक्त समय</th>
+                    <th class="red-txt">अतिरिक्त समय & लॉक</th>
                     <th class="red-txt">से (शुरुआत)</th>
                     <th class="red-txt">तक (समाप्ति)</th>
                     <th>धनराशी</th>
                     <th>रू० प्राप्त तारीख</th>
                     <th style="min-width:90px;">पर्ची</th>
-                    <th id="actionHeader" style="display:none; min-width: 200px;">एडमिन कार्रवाई</th>
+                    <th id="actionHeader" style="display:none; min-width: 220px;">एडमिन कार्रवाई</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -330,11 +331,9 @@
                 <tr style="background:#f2f2f2; font-weight:bold;">
                     <td colspan="3">कुल:</td>
                     <td id="totalMinFoot">0</td>
-                    <td id="totalHMFoot" class="red-txt">0 घंटे 0 मिनट</td>
-                    <td id="totalExtraFoot" class="red-txt">0</td>
-                    <td colspan="2"></td>
-                    <td id="totalAmountFoot" style="color:#27ae60; font-size:13px;">0</td>
                     <td colspan="3"></td>
+                    <td id="totalAmountFoot" style="color:#27ae60; font-size:13px;">0</td>
+                    <td colspan="4"></td>
                 </tr>
             </tfoot>
         </table>
@@ -395,28 +394,29 @@
     let isTablePublic = false; 
     let isBottomNoticePublic = true; 
     let selectedMode = "oddeven"; 
+    let topExtraMinutes = 0; // S.No 1 के लिए फिक्स अतिरिक्त समय
     let waterDates = [];
     let debounceTimer;
 
     let initialData = [
-        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, extra: "", amount: "", date: "" },
-        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, extra: "", amount: "", date: "" },
-        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, extra: "", amount: "", date: "" },
-        { name: "श्री राजेश कुमार जी", bigha: 2, extra: "", amount: "", date: "" },
-        { name: "श्री कांता डबराल जी", bigha: 0.5, extra: "", amount: "", date: "" },
-        { name: "श्रीमती बसंती देवी", bigha: 1, extra: "", amount: "", date: "" },
-        { name: "श्री विपिन खंतवाल", bigha: 3, extra: "", amount: "", date: "" },
-        { name: "श्रीमती उषा देवी", bigha: 2, extra: "", amount: "", date: "" },
-        { name: "श्रीमती अंजू देवी", bigha: 2, extra: "", amount: "", date: "" },
-        { name: "गणेश", bigha: 3.5, extra: "", amount: "", date: "" },
-        { name: "श्रीमती गीता देवी", bigha: 2, extra: "", amount: "", date: "" },
-        { name: "श्रीमती मनीषा देवी", bigha: 2, extra: "", amount: "", date: "" },
-        { name: "श्री राजू बिष्ट", bigha: 7, extra: "", amount: "", date: "" },
-        { name: "श्रीमती मनीषा देवी २", bigha: 2, extra: "", amount: "", date: "" },
-        { name: "श्रीमती पिंकी देवी", bigha: 2, extra: "", amount: "", date: "" },
-        { name: "श्री मस्तान सिंह जी", bigha: 0.5, extra: "", amount: "", date: "" },
-        { name: "श्रीमती पुनीता देवी", bigha: 0.5, extra: "", amount: "", date: "" },
-        { name: "श्रीमती जस्सी देवी", bigha: 3, extra: "", amount: 100, date: "25-07" }
+        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री राजेश कुमार जी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री कांता डबराल जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती बसंती देवी", bigha: 1, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री विपिन खंतवाल", bigha: 3, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती उषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती अंजू देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "गणेश", bigha: 3.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती गीता देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती मनीषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री राजू बिष्ट", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती मनीषा देवी २", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती पिंकी देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री मस्तान सिंह जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती पुनीता देवी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती जस्सी देवी", bigha: 3, amount: 100, date: "25-07", extraMinutes: 0, isLocked: false }
     ];
 
     function updateLiveClock() {
@@ -439,6 +439,11 @@
     function updateBottomNoticeText(val) {
         bottomNoticeMessage = val;
         document.getElementById('bottomNoticeDisplay').innerText = val.trim() !== "" ? val : "यहाँ महत्वपूर्ण सूचना प्रदर्शित होगी।";
+    }
+
+    function updateTopExtra(val) {
+        topExtraMinutes = parseFloat(val) || 0;
+        calculateAll();
     }
 
     function toggleTableVisibility() {
@@ -533,7 +538,13 @@
             let record = await res.json();
             
             if(record) {
-                if(record.users && record.users.length > 0) initialData = record.users;
+                if(record.users && record.users.length > 0) {
+                    initialData = record.users.map(u => ({
+                        ...u,
+                        extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
+                        isLocked: u.isLocked !== undefined ? u.isLocked : false
+                    }));
+                }
                 if(record.password) adminPassword = record.password;
                 if(record.notice) {
                     noticeMessage = record.notice;
@@ -551,6 +562,9 @@
                     selectedMode = record.selectedMode;
                     let radios = document.getElementsByName('waterDistributionMode');
                     radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
+                }
+                if(record.topExtraMinutes !== undefined) {
+                    topExtraMinutes = record.topExtraMinutes;
                 }
                 if(record.startDate) document.getElementById('startDateInput').value = record.startDate;
                 if(record.gapDays) document.getElementById('intervalInput').value = record.gapDays;
@@ -573,6 +587,7 @@
             isTablePublic: isTablePublic,
             isBottomNoticePublic: isBottomNoticePublic,
             selectedMode: selectedMode,
+            topExtraMinutes: topExtraMinutes,
             startDate: document.getElementById('startDateInput').value,
             gapDays: document.getElementById('intervalInput').value,
             totalPoolHours: document.getElementById('totalPoolHours').value,
@@ -625,18 +640,14 @@
         let totalBigha = 0;
         let totalMinutesPure = 0; 
         let totalMinutesCalc = 0;
-        let totalExtraMinutesSum = 0; 
         let totalAmountVal = 0;
 
         let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
-        let totalPoolHours = parseFloat(document.getElementById('totalPoolHours').value) || 24;
 
         initialData.forEach((row) => {
             let bigha = parseFloat(row.bigha) || 0;
-            let extra = parseFloat(row.extra) || 0;
             let amount = parseFloat(row.amount) || 0;
             totalBigha += bigha;
-            totalExtraMinutesSum += extra; 
             totalAmountVal += amount;
         });
 
@@ -644,19 +655,15 @@
         let cumulativeMinutes = 0;
         let startStr = document.getElementById('startTime').value.trim();
 
-        let rowCalculatedData = [];
-        initialData.forEach((row) => {
+        initialData.forEach((row, idx) => {
             let bigha = parseFloat(row.bigha) || 0;
-            let extra = parseFloat(row.extra) || 0;
             let pureMinutes = (totalBigha > 0) ? (bigha * targetTotalMinutes / totalBigha) : 0;
             totalMinutesPure += pureMinutes;
-            let minutes = pureMinutes + extra;
-            rowCalculatedData.push({ minutes: minutes });
-            totalMinutesCalc += minutes;
-        });
 
-        initialData.forEach((row, idx) => {
-            let minutes = rowCalculatedData[idx].minutes;
+            let extra = (idx === 0) ? topExtraMinutes : (row.extraMinutes || 0);
+            let minutes = pureMinutes + extra;
+            totalMinutesCalc += minutes;
+
             let hoursPart = Math.floor(minutes / 60);
             let minsPart = Math.round(minutes % 60);
 
@@ -676,17 +683,31 @@
                 `;
             }
 
+            let extraColumnContent = '';
+            if (idx === 0) {
+                extraColumnContent = `<input type="number" class="clean-input" style="width:60px; text-align:center; font-weight:bold; color:#27ae60;" value="${topExtraMinutes}" onchange="updateTopExtra(this.value)" title="S.No 1 का अतिरिक्त समय मिनट">`;
+            } else {
+                let isLocked = row.isLocked !== undefined ? row.isLocked : false;
+                extraColumnContent = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                        <input type="number" class="clean-input" style="width:50px; text-align:center;" value="${row.extraMinutes || 0}" onchange="updateRowExtra(${idx}, this.value)" ${isLocked ? 'readonly' : ''} title="अतिरिक्त समय मिनट">
+                        <button class="btn-lock" onclick="toggleRowLock(${idx})" style="background:${isLocked ? '#e74c3c' : '#27ae60'};" title="${isLocked ? 'अनलॉक करें' : 'लॉक करें'}">${isLocked ? '🔒' : '🔓'}</button>
+                    </div>
+                `;
+            }
+
+            // क्रम: S.No | नाम | बीघा | मिनट | घंटे / मिनट | अतिरिक्त समय & लॉक | से (शुरुआत) | तक (समाप्ति) | धनराशी | रू० प्राप्त तारीख | पर्ची | एडमिन कार्रवाई
             tr.innerHTML = `
                 <td>${idx + 1}</td>
                 <td><input type="text" class="clean-input" style="width:130px;" value="${row.name}" onchange="updateRowField(${idx}, 'name', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
-                <td><input type="number" class="clean-input" style="width:55px; text-align:center;" step="0.1" value="${row.bigha}" onchange="updateRowField(${idx}, 'bigha', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="number" class="clean-input" style="width:50px; text-align:center;" step="0.1" value="${row.bigha}" onchange="updateRowField(${idx}, 'bigha', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
                 <td class="red-txt">${Math.round(minutes)}</td>
                 <td class="red-txt">${hoursPart} घंटे ${minsPart} मिनट</td>
-                <td class="red-txt"><input type="number" class="clean-input" style="width:55px; text-align:center;" value="${row.extra || ''}" placeholder="0" oninput="updateRowFieldLive(${idx}, 'extra', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td>${extraColumnContent}</td>
                 <td class="red-txt">${startTimeFormatted}</td>
                 <td class="red-txt">${endTimeFormatted}</td>
                 <td><input type="number" class="clean-input" style="width:65px; text-align:center;" value="${row.amount || ''}" placeholder="0" onchange="updateRowField(${idx}, 'amount', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
-                <td><input type="text" class="clean-input" style="width:85px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM" onchange="updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" class="clean-input" style="width:80px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM" onchange="updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
                 <td>
                     <button class="btn-row-print" onclick="printRowSlip(${idx})">🖨️ पर्ची</button>
                 </td>
@@ -695,12 +716,7 @@
             tbody.appendChild(tr);
         });
 
-        let totalFootH = Math.floor(totalMinutesPure / 60);
-        let totalFootM = Math.round(totalMinutesPure % 60);
-
         document.getElementById('totalMinFoot').innerText = Math.round(totalMinutesCalc);
-        document.getElementById('totalHMFoot').innerText = `${totalFootH} घंटे ${totalFootM} मिनट`;
-        document.getElementById('totalExtraFoot').innerText = totalExtraMinutesSum;
         document.getElementById('totalAmountFoot').innerText = totalAmountVal;
         document.getElementById('sumBigha').innerText = totalBigha;
 
@@ -708,12 +724,13 @@
         let distM = Math.round(targetTotalMinutes % 60);
         document.getElementById('displayDistributedHM').innerText = `${distH} घंटे ${distM} मिनट`;
 
-        let totalDistributionMinutes = targetTotalMinutes + totalExtraMinutesSum;
+        let totalOtherExtras = initialData.reduce((acc, curr, i) => acc + (i > 0 ? (curr.extraMinutes || 0) : 0), 0);
+        let totalDistributionMinutes = targetTotalMinutes + topExtraMinutes + totalOtherExtras;
         let totalDistH = Math.floor(totalDistributionMinutes / 60);
         let totalDistM = Math.round(totalDistributionMinutes % 60);
         document.getElementById('displayTotalDistributionHM').innerText = `${totalDistH} घंटे ${totalDistM} मिनट`;
 
-        let poolTotalMins = totalPoolHours * 60;
+        let poolTotalMins = (parseFloat(document.getElementById('totalPoolHours').value) || 24) * 60;
         let remMins = Math.max(0, poolTotalMins - totalDistributionMinutes);
         let remHPart = Math.floor(remMins / 60);
         let remMPart = Math.round(remMins % 60);
@@ -743,10 +760,14 @@
         calculateAll();
     }
 
-    function updateRowFieldLive(idx, field, val) {
-        initialData[idx][field] = val;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { calculateAll(); }, 500);
+    function updateRowExtra(idx, val) {
+        initialData[idx].extraMinutes = parseFloat(val) || 0;
+        calculateAll();
+    }
+
+    function toggleRowLock(idx) {
+        initialData[idx].isLocked = !initialData[idx].isLocked;
+        calculateAll();
     }
 
     function deleteRow(idx) {
@@ -828,8 +849,9 @@
         let rowMinutesList = [];
         for(let i=0; i<initialData.length; i++) {
             let b = parseFloat(initialData[i].bigha) || 0;
-            let e = parseFloat(initialData[i].extra) || 0;
-            let m = (totalBigha > 0) ? (b * targetTotalMinutes / totalBigha) + e : e;
+            let m = (totalBigha > 0) ? (b * targetTotalMinutes / totalBigha) : 0;
+            if(i === 0) m += topExtraMinutes;
+            else m += (initialData[i].extraMinutes || 0);
             rowMinutesList.push(m);
         }
 
@@ -843,7 +865,6 @@
         let sTime = addMinutesToTime(startStr, cumulativeMinutes);
         let eTime = addMinutesToTime(sTime, userMinutes);
 
-        // अगली बारी (Even Cycle) के लिए समय की गणना ठीक सुबह एडमिन द्वारा निर्धारित शुरुआती समय (जैसे 07:00:00 AM) से शुरू होगी
         let timeBeforeUserInEvenCycle = 0;
         for(let i = selIdx + 1; i < initialData.length; i++) {
             timeBeforeUserInEvenCycle += rowMinutesList[i];
@@ -879,8 +900,9 @@
         
         for(let i=0; i<initialData.length; i++) {
             let b = parseFloat(initialData[i].bigha) || 0;
-            let e = parseFloat(initialData[i].extra) || 0;
-            let m = (totalBigha > 0) ? (b * targetTotalMinutes / totalBigha) + e : e;
+            let m = (totalBigha > 0) ? (b * targetTotalMinutes / totalBigha) : 0;
+            if(i === 0) m += topExtraMinutes;
+            else m += (initialData[i].extraMinutes || 0);
             rowMinutesList.push(m);
         }
 
@@ -897,7 +919,6 @@
         let hPart = Math.floor(userMinutes / 60);
         let mPart = Math.round(userMinutes % 60);
 
-        // पर्ची पर भी अगली बारी का समय ठीक एडमिन के शुरुआती समय से नए चक्र के रूप में शुरू होगा
         let timeBeforeUserInEvenCycle = 0;
         for(let i = userIndex + 1; i < initialData.length; i++) {
             timeBeforeUserInEvenCycle += rowMinutesList[i];
