@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>पानी सिंचाई वितरण सारणी</title>
-    <!-- HTML2Canvas Library for generating image slip -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
         body { background-color: #f4f7f6; margin: 0; padding: 10px; color: #333; padding-bottom: 100px; }
@@ -88,17 +86,15 @@
         }
 
         .result-box { margin-top: 10px; padding: 12px; background: #ffffff; border: 2px solid #27ae60; border-radius: 6px; font-size: 13px; line-height: 1.6; }
-        .due-msg { margin-top: 8px; padding-top: 6px; border-top: 1px dashed #e74c3c; color: #c0392b; font-weight: bold; }
 
         .summary-table { width: 100%; border-collapse: collapse; }
         .summary-table td { padding: 5px 6px; font-size: 13px; border-bottom: 1px dashed #cbd5e1; }
         .summary-table td.val { text-align: right; font-weight: bold; color: #c0392b; }
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 15px; border: 1px solid #a6acaf; border-radius: 4px; }
-        table.main-table { width: 100%; min-width: 950px; border-collapse: collapse; font-size: 12px; }
+        table.main-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12px; }
         table.main-table th, table.main-table td { border: 1px solid #cbd5e1; padding: 6px 5px; text-align: center; white-space: nowrap; }
         table.main-table th { background-color: #ebedef; font-weight: bold; color: #2c3e50; }
         table.main-table th.red-txt, table.main-table td.red-txt { color: #c0392b; }
-        tr.highlight-row { background-color: #d4efdf !important; font-weight: bold; }
         
         .admin-only-block { display: none; }
         
@@ -138,13 +134,9 @@
         .btn-action { background: #27ae60; color: #fff; width: 100%; padding: 8px; margin-top: 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-view-chart { background: #16a085; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 8px; width: 100%; }
         .btn-print-slip { background: #e67e22; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; display: none; }
-        .btn-wa-slip { background: #25D366; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; display: none; }
-        .btn-img-slip { background: #0b5ed7; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; display: none; }
         .btn-print-all { background: #8e44ad; color: #fff; border: none; padding: 10px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
         
-        .btn-row-print { background: #e67e22; color: white; border: none; padding: 4px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-        .btn-row-wa { background: #25D366; color: white; border: none; padding: 4px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; margin-left: 2px; }
-        .btn-row-img { background: #0b5ed7; color: white; border: none; padding: 4px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; margin-left: 2px; }
+        .btn-row-print { background: #e67e22; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; }
 
         .full-chart-box { display: none; margin-top: 10px; padding: 10px; background: #fcf3cf; border: 1px solid #f1c40f; border-radius: 5px; font-size: 12px; max-height: 250px; overflow-y: auto; }
         
@@ -223,16 +215,8 @@
         .slip-field b { color: #000; }
         .slip-time-txt { color: #1a5276; font-weight: bold; }
         .slip-even-time { color: #c0392b; font-weight: bold; }
-        .slip-divider {
-            border-top: 1px dashed #888;
-            margin: 6px 0;
-        }
-        .slip-due-text {
-            color: #c0392b;
-            font-weight: bold;
-            font-size: 10px;
-            margin-top: 4px;
-        }
+        .slip-divider { border-top: 1px dashed #888; margin: 6px 0; }
+        .slip-due-text { color: #c0392b; font-weight: bold; font-size: 10px; margin-top: 4px; }
         .slip-footer-txt {
             margin-top: 6px;
             text-align: center;
@@ -316,8 +300,6 @@
             </div>
 
             <button class="btn-print-slip" id="printSlipBtn" onclick="printSelectedSlip()">🖨️ इस सदस्य की पर्ची प्रिंट करें</button>
-            <button class="btn-wa-slip" id="waSlipBtn" onclick="sendWAServiceFromSelect()">📲 WhatsApp पर संदेश भेजें</button>
-            <button class="btn-img-slip" id="imgSlipBtn" onclick="shareSlipAsImageFromSelect()">🖼️ WhatsApp पर पर्ची की फोटो (Image) भेजें</button>
             <button class="btn-view-chart" onclick="toggleFullChart()">📅 पूरे महीने की सिंचाई तारीखें (Full Chart)</button>
 
             <div id="fullChartBox" class="full-chart-box">
@@ -404,7 +386,7 @@
                     <th class="red-txt">तक (समाप्ति)</th>
                     <th>धनराशी</th>
                     <th>रू० प्राप्त तारीख</th>
-                    <th style="min-width:130px;">कार्रवाई / पर्ची</th>
+                    <th style="min-width:80px;">पर्ची</th>
                     <th id="actionHeader" style="display:none; min-width: 220px;">एडमिन कार्रवाई</th>
                 </tr>
             </thead>
@@ -435,7 +417,7 @@
 
 </div>
 
-<!-- Hidden container for printing/rendering image slips -->
+<!-- Printable Area -->
 <div id="printableArea"></div>
 
 <button class="floating-save-btn" id="floatingSaveBtn" onclick="saveDataToCloud()">💾 गूगल शीट पर सेव करें</button>
@@ -749,7 +731,7 @@
         let totalCalculatedMin = 0;
         let totalAmount = 0;
 
-        initialData.forEach((item, idx) => {
+        initialData.forEach((item) => {
             let bighaMin = (parseFloat(item.bigha) || 0) * ratePerBigha;
             let extraMin = parseFloat(item.extra) || 0;
             let totalRowMin = Math.round(bighaMin + extraMin);
@@ -848,9 +830,7 @@
                     <td><input type="number" class="clean-input" style="width:70px;" value="${item.amount || ''}" placeholder="0" onchange="updateRowData(${index}, 'amount', this.value)"></td>
                     <td><input type="text" class="clean-input" style="width:90px;" value="${item.date || ''}" placeholder="DD-MM-YYYY" onchange="updateRowData(${index}, 'date', this.value)"></td>
                     <td>
-                        <button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️</button>
-                        <button class="btn-row-wa" onclick="sendWAServiceFromRow(${index})">📲</button>
-                        <button class="btn-row-img" onclick="shareSlipAsImageFromRow(${index})">🖼️</button>
+                        <button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️ प्रिंट</button>
                     </td>
                     <td>
                         <button class="btn-move" onclick="moveRow(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
@@ -872,9 +852,7 @@
                     <td>${item.amount || '-'}</td>
                     <td>${item.date || '-'}</td>
                     <td>
-                        <button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️</button>
-                        <button class="btn-row-wa" onclick="sendWAServiceFromRow(${index})">📲</button>
-                        <button class="btn-row-img" onclick="shareSlipAsImageFromRow(${index})">🖼️</button>
+                        <button class="btn-row-print" onclick="printSingleSlip(${index})">🖨️ प्रिंट</button>
                     </td>
                 `;
             }
@@ -947,14 +925,10 @@
         let selectVal = document.getElementById('userSelect').value;
         let resultBox = document.getElementById('turnResult');
         let printBtn = document.getElementById('printSlipBtn');
-        let waBtn = document.getElementById('waSlipBtn');
-        let imgBtn = document.getElementById('imgSlipBtn');
 
         if (selectVal === "") {
             resultBox.innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
             printBtn.style.display = "none";
-            waBtn.style.display = "none";
-            imgBtn.style.display = "none";
             return;
         }
 
@@ -963,8 +937,6 @@
 
         resultBox.innerHTML = buildSlipHTML(item, idx);
         printBtn.style.display = "block";
-        waBtn.style.display = "block";
-        imgBtn.style.display = "block";
     }
 
     function toggleFullChart() {
@@ -993,111 +965,6 @@
         window.print();
     }
 
-    function generateWAMessageText(item) {
-        let h = Math.floor(item.calculatedMin / 60);
-        let m = item.calculatedMin % 60;
-        let date1 = waterDates[0] || "उपलब्ध नहीं";
-        let date2 = waterDates[1] || "उपलब्ध नहीं";
-
-        let text = `💧 *पानी सिंचाई वितरण पर्ची*\n`;
-        text += `👤 *नाम:* ${item.name}\n`;
-        text += `🌾 *बीघा:* ${item.bigha}\n`;
-        text += `⏱️ *समय:* ${h} घंटे ${m} मिनट\n`;
-        text += `▶️ *शुरुआत:* ${item.startTime}\n`;
-        text += `⏹️ *समाप्ति:* ${item.endTime}\n`;
-        
-        if (selectedMode === 'oddeven') {
-            text += `📅 *विषम बारी:* ${date1}\n`;
-            text += `📅 *सम बारी:* ${date2}\n`;
-        } else {
-            text += `📅 *पानी तारीख:* ${date1}\n`;
-        }
-
-        if (item.amount) {
-            text += `💸 *जमा राशि:* ₹${item.amount} (${item.date || '-'})\n`;
-        }
-        
-        if (noticeMessage.trim() !== "") {
-            text += `\n📢 *सूचना:* ${noticeMessage.trim()}\n`;
-        }
-        text += `\n- सिंचाई प्रबंधन समिति`;
-        return encodeURIComponent(text);
-    }
-
-    function sendWAServiceFromSelect() {
-        let selectVal = document.getElementById('userSelect').value;
-        if (selectVal !== "") {
-            sendWAServiceFromRow(parseInt(selectVal));
-        }
-    }
-
-    function sendWAServiceFromRow(index) {
-        let msg = generateWAMessageText(initialData[index]);
-        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-    }
-
-    /* --- HTML2Canvas Image Generation and WhatsApp Share Logic --- */
-    async function shareSlipAsImageFromIndex(index) {
-        let tempDiv = document.createElement('div');
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        tempDiv.style.top = '-9999px';
-        tempDiv.style.width = '350px';
-        tempDiv.style.padding = '10px';
-        tempDiv.style.background = '#ffffff';
-
-        tempDiv.innerHTML = buildSlipHTML(initialData[index], index);
-        document.body.appendChild(tempDiv);
-
-        let targetSlip = tempDiv.querySelector('.slip-box');
-
-        try {
-            let canvas = await html2canvas(targetSlip, { scale: 2 });
-            canvas.toBlob(async (blob) => {
-                let fileName = `Irrigation_Slip_${initialData[index].name}.png`;
-                let file = new File([blob], fileName, { type: 'image/png' });
-
-                // Try Web Share API (Mobile Browsers)
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: 'पानी सिंचाई पर्ची',
-                            text: `💧 ${initialData[index].name} की सिंचाई पर्ची`
-                        });
-                    } catch (err) {
-                        console.log("Share canceled or failed", err);
-                    }
-                } else {
-                    // Fallback for Desktop/Unsupported browsers: Auto-download & Open WhatsApp Web
-                    let link = document.createElement('a');
-                    link.download = fileName;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    alert("पर्ची की फोटो डाउनलोड हो गई है! अब आप इसे व्हाट्सएप पर अटैच करके भेज सकते हैं।");
-
-                    let msg = generateWAMessageText(initialData[index]);
-                    window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-                }
-            });
-        } catch (err) {
-            alert("इमेज बनाने में त्रुटि हुई: " + err.message);
-        } finally {
-            document.body.removeChild(tempDiv);
-        }
-    }
-
-    function shareSlipAsImageFromSelect() {
-        let selectVal = document.getElementById('userSelect').value;
-        if (selectVal !== "") {
-            shareSlipAsImageFromIndex(parseInt(selectVal));
-        }
-    }
-
-    function shareSlipAsImageFromRow(index) {
-        shareSlipAsImageFromIndex(index);
-    }
-
     function exportToCSV() {
         let csv = 'S.No,Name,Bigha,Minutes,HM,Extra,Start,End,Amount,Date\n';
         initialData.forEach((item, i) => {
@@ -1113,7 +980,7 @@
         link.click();
     }
 
-    // Initialize Page Data on Load
+    // Page Initialization
     window.onload = function() {
         loadDataFromCloud();
     };
