@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>पानी सिंचाई वितरण सारणी ( ग्रुप नं 2 में 24 घंटे की बारी )</title>
+    <title>पानी सिंचाई वितरण सारणी</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
         body { background-color: #f4f7f6; margin: 0; padding: 10px; color: #333; padding-bottom: 100px; }
@@ -91,8 +91,8 @@
         .summary-table td { padding: 5px 6px; font-size: 13px; border-bottom: 1px dashed #cbd5e1; }
         .summary-table td.val { text-align: right; font-weight: bold; color: #c0392b; }
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 15px; border: 1px solid #a6acaf; border-radius: 4px; }
-        table.main-table { width: 100%; min-width: 800px; border-collapse: collapse; font-size: 12px; }
-        table.main-table th, table.main-table td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; white-space: nowrap; }
+        table.main-table { width: 100%; min-width: 950px; border-collapse: collapse; font-size: 12px; }
+        table.main-table th, table.main-table td { border: 1px solid #cbd5e1; padding: 6px 5px; text-align: center; white-space: nowrap; }
         table.main-table th { background-color: #ebedef; font-weight: bold; color: #2c3e50; }
         table.main-table th.red-txt, table.main-table td.red-txt { color: #c0392b; }
         tr.highlight-row { background-color: #d4efdf !important; font-weight: bold; }
@@ -116,17 +116,14 @@
         .btn-print-slip { background: #e67e22; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; display: none; }
         .btn-print-all { background: #8e44ad; color: #fff; border: none; padding: 10px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
         
-        .btn-row-print { background: #e67e22; color: white; border: none; padding: 3px 5px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-row-print { background: #e67e22; color: white; border: none; padding: 4px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; }
 
         .full-chart-box { display: none; margin-top: 10px; padding: 10px; background: #fcf3cf; border: 1px solid #f1c40f; border-radius: 5px; font-size: 12px; max-height: 250px; overflow-y: auto; }
         
-        /* कॉम्पैक्ट और छोटे बटन्स */
-        .admin-action-container { display: flex; align-items: center; justify-content: center; gap: 2px; }
-        .btn-move { background: #3498db; color: white; border: none; padding: 2px 5px; font-size: 10px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-move { background: #3498db; color: white; border: none; padding: 4px 8px; font-size: 12px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
         .btn-move:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .btn-add-inline { background: #27ae60; color: white; border: none; padding: 2px 4px; font-size: 10px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-        .btn-delete { background: #e74c3c; color: white; border: none; padding: 2px 5px; font-size: 10px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-        .btn-lock { background: #e67e22; color: white; border: none; padding: 3px 5px; font-size: 10px; border-radius: 3px; cursor: pointer; }
+        .btn-delete { background: #e74c3c; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
+        .btn-lock { background: #e67e22; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; margin: 0 1px; font-weight: bold; }
 
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -145,12 +142,12 @@
         }
 
         .clean-input {
-            border: 1px solid #bdc3c7; padding: 3px 5px; border-radius: 4px; font-size: 12px; outline: none;
+            border: 1px solid #bdc3c7; padding: 4px 6px; border-radius: 4px; font-size: 12px; outline: none;
         }
         .clean-input:focus { border-color: #2980b9; }
 
         @media screen and (max-width: 768px) {
-            .clean-input, .input-group input, .input-group select { font-size: 14px !important; }
+            .clean-input, .input-group input, .input-group select { font-size: 16px !important; }
         }
 
         #printableArea { display: none; }
@@ -202,7 +199,7 @@
 
 <div class="container">
     <div class="header-bar">
-        <h2>पानी सिंचाई वितरण सारणी ( ग्रुप नं 2 में 24 घंटे की बारी )</h2>
+        <h2>पानी सिंचाई वितरण सारणी</h2>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div class="live-clock-box">
                 🌐 <span id="liveClock">00:00:00 AM</span>
@@ -284,9 +281,11 @@
                 </div>
             </div>
 
+            <!-- विशेष मिनट सेटिंग्स: ऑड (Odd) और इवन (Even) के लिए अलग-अलग बॉक्स -->
             <div style="background:#e8f8f5; padding:8px; border-radius:4px; border:1px solid #a3e4d7; margin-bottom:8px;">
                 <b style="color:#117a65; font-size:12px;">⚙️ विशेष मिनट सेटिंग्स (Custom Minutes):</b>
                 
+                <!-- ODD Box -->
                 <div style="margin-top:6px; padding:6px; background:#fff; border:1px dashed #117a65; border-radius:4px;">
                     <span style="font-size:11px; font-weight:bold; color:#117a65; display:block; margin-bottom:4px;">👉 Odd व्यवस्था के लिए:</span>
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
@@ -301,6 +300,7 @@
                     </div>
                 </div>
 
+                <!-- EVEN Box -->
                 <div style="margin-top:6px; padding:6px; background:#fff; border:1px dashed #c0392b; border-radius:4px;">
                     <span style="font-size:11px; font-weight:bold; color:#c0392b; display:block; margin-bottom:4px;">👉 Even व्यवस्था के लिए:</span>
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
@@ -347,20 +347,20 @@
         <table class="main-table" id="scheduleTable">
             <thead>
                 <tr>
-                    <th style="width: 35px;">S.No</th>
+                    <th style="width: 45px;">S.No</th>
                     <th>नाम</th>
-                    <th style="width: 50px;">बीघा</th>
-                    <th class="red-txt" style="width: 55px;">मिनट</th>
+                    <th>बीघा</th>
+                    <th class="red-txt">मिनट</th>
                     <th class="red-txt">घंटे /मिनट</th>
                     <th class="red-txt">अतिरिक्त समय & लॉक</th>
-                    <th class="red-txt" style="width: 50px;">विशेष मिनट</th>
+                    <th class="red-txt">विशेष मिनट</th>
                     <th class="red-txt">से (शुरुआत)</th>
                     <th class="red-txt">तक (समाप्ति)</th>
-                    <th style="width: 65px;">धनराशी</th>
-                    <th style="width: 75px;">रू० प्राप्त तारीख</th>
-                    <th style="width: 55px;">पर्ची</th>
-                    <th id="actionHeader" style="display:none; width: 110px;">क्रम/नाम</th>
-                    <th id="deleteHeader" style="display:none; width: 50px;">हटाएं</th>
+                    <th>धनराशी</th>
+                    <th>रू० प्राप्त तारीख</th>
+                    <th style="min-width:90px;">पर्ची</th>
+                    <th id="actionHeader" style="display:none; min-width: 220px;">क्रम / नया नाम</th>
+                    <th id="deleteHeader" style="display:none; min-width:90px;">लाइन हटाएं</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -502,6 +502,7 @@
 
     function applyModeTimeRules() {
         if (initialData.length === 0) return;
+        // Reverse order uses Even settings; straight order uses Odd settings.
         let settingsPrefix = currentOrder === "reverse" ? "even" : "odd";
         let firstMins = parseFloat(document.getElementById(settingsPrefix + "FirstMins").value) || 0;
         let lastMins = parseFloat(document.getElementById(settingsPrefix + "LastMins").value) || 0;
@@ -587,6 +588,7 @@
                 row.extraMinutes = 0;
                 row.customMinutes = 0;
             });
+            // Apply the Even first/last-minute rules immediately after reversing.
             applyModeTimeRules();
             reverseTimeState = saveCurrentOrderTimeState();
         } else {
@@ -830,12 +832,16 @@
             let adminActionHtml = '';
             if(isAdmin) {
                 adminActionHtml = `
-                    <div class="admin-action-container">
-                        <button class="btn-move" onclick="moveRow(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="ऊपर">▲</button>
-                        <button class="btn-move" onclick="moveRow(${idx}, 1)" ${idx === initialData.length - 1 ? 'disabled' : ''} title="नीचे">▼</button>
-                        <button class="btn-add-inline" onclick="addRowAt(${idx}, 'above')" title="ऊपर नया जोड़ें">+▲</button>
-                        <button class="btn-add-inline" onclick="addRowAt(${idx}, 'below')" title="नीचे नया जोड़ें">+▼</button>
-                    </div>
+
+
+                    <button class="btn-move" onclick="moveRow(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲ ऊपर</button>
+                    <button class="btn-move" onclick="moveRow(${idx}, 1)" ${idx === initialData.length - 1 ? 'disabled' : ''}>▼ नीचे</button>
+                    <span class="btn-move" style="display:inline-flex; align-items:center; gap:5px; padding:4px 7px;">
+                        <button type="button" onclick="addRowAt(${idx}, 'above')" style="border:0; background:transparent; color:inherit; cursor:pointer; font-weight:bold; padding:0 2px;" title="ऊपर नया नाम जोड़ें">▲</button>
+                        <span>नया नाम जोड़ें</span>
+                        <button type="button" onclick="addRowAt(${idx}, 'below')" style="border:0; background:transparent; color:inherit; cursor:pointer; font-weight:bold; padding:0 2px;" title="नीचे नया नाम जोड़ें">▼</button>
+                    </span>
+
                 `;
             }
 
@@ -848,7 +854,7 @@
             `;
 
             let customColumnContent = `
-                <input type="number" class="clean-input" style="width:50px; text-align:center;" value="${row.customMinutes || 0}" onchange="updateRowCustom(${idx}, this.value)" title="विशेष मिनट">
+                <input type="number" class="clean-input" style="width:60px; text-align:center;" value="${row.customMinutes || 0}" onchange="updateRowCustom(${idx}, this.value)" title="विशेष मिनट">
             `;
 
             tr.innerHTML = `
@@ -861,13 +867,13 @@
                 <td>${customColumnContent}</td>
                 <td class="red-txt">${startTimeFormatted}</td>
                 <td class="red-txt">${endTimeFormatted}</td>
-                <td><input type="number" class="clean-input" style="width:60px; text-align:center;" value="${row.amount || ''}" placeholder="0" onchange="updateRowField(${idx}, 'amount', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
-                <td><input type="text" class="clean-input" style="width:75px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM" onchange="updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="number" class="clean-input" style="width:65px; text-align:center;" value="${row.amount || ''}" placeholder="0" onchange="updateRowField(${idx}, 'amount', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" class="clean-input" style="width:80px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM" onchange="updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
                 <td>
                     <button class="btn-row-print" onclick="printRowSlip(${idx})">🖨️ पर्ची</button>
                 </td>
                 <td style="display: ${isAdmin ? 'table-cell' : 'none'};">${adminActionHtml}</td>
-                <td style="display: ${isAdmin ? 'table-cell' : 'none'};"><button class="btn-delete" onclick="deleteRow(${idx})">❌</button></td>
+                <td style="display: ${isAdmin ? 'table-cell' : 'none'};"><button class="btn-delete" onclick="deleteRow(${idx})">❌ हटाएं</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -944,6 +950,25 @@
         calculateAll();
     }
 
+    function insertNewRow(index) {
+        initialData.splice(index, 0, {
+            name: "नया नाम लिखें",
+            bigha: 0,
+            amount: "",
+            date: "",
+            extraMinutes: 0,
+            customMinutes: 0,
+            isLocked: false
+        });
+
+        if (currentOrder === "straight") {
+            straightTimeState = saveCurrentOrderTimeState();
+        } else {
+            reverseTimeState = saveCurrentOrderTimeState();
+        }
+
+        calculateAll();
+    }
     function addRowAt(index, position) {
         let name = prompt("नए उपयोगकर्ता का नाम दर्ज करें:", "नया नाम");
         if (name === null) return;
@@ -970,7 +995,6 @@
 
         calculateAll();
     }
-
     function deleteRow(idx) {
         if(confirm("क्या आप वाकई इस पंक्ति को हटाना चाहते हैं?")) {
             initialData.splice(idx, 1);
