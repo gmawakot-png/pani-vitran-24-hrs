@@ -433,6 +433,7 @@
 
     let isAdmin = false;
     let adminPassword = "2050"; 
+    const LOCAL_BACKUP_KEY = "paniVitranLocalBackup";
     let noticeMessage = "";
     let bottomNoticeMessage = ""; 
     let isTablePublic = false; 
@@ -507,6 +508,26 @@
                 setSaveStatus('💾 गूगल शीट पर सेव करें', false);
             }
         }, 1500);
+    }
+
+    function saveLocalBackup(payload) {
+        try {
+            localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({
+                ...payload,
+                savedAt: new Date().toString()
+            }));
+        } catch (e) {
+            console.warn('लोकल बैकअप नहीं हो सका:', e);
+        }
+    }
+
+    function loadLocalBackup() {
+        try {
+            const raw = localStorage.getItem(LOCAL_BACKUP_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
     }
 
     function scheduleAutoSave() {
@@ -818,7 +839,9 @@
             if(newP && newP.trim() !== "") {
                 adminPassword = newP.trim();
                 closeChangePassModal();
-                alert("पासवर्ड बदल दिया गया! कृपया गूगल शीट पर सेव करें।");
+                setSaveStatus('🔐 नया पासवर्ड सेट हो गया', false);
+                scheduleAutoSave();
+                alert("पासवर्ड बदल दिया गया! अब यह नया पासवर्ड काम करेगा।");
             } else {
                 alert("कृपया नया पासवर्ड दर्ज करें!");
             }
@@ -841,7 +864,9 @@
                         isLocked: u.isLocked !== undefined ? u.isLocked : false
                     }));
                 }
-                if(record.password) adminPassword = record.password;
+                if(record.password && (!adminPassword || adminPassword === "2050")) {
+                    adminPassword = record.password;
+                }
                 if(record.notice) {
                     noticeMessage = record.notice;
                     document.getElementById('noticeInput').value = noticeMessage;
@@ -916,6 +941,8 @@
             users: initialData
         };
 
+        saveLocalBackup(payload);
+
         try {
             setSaveStatus('सेव हो रहा है...', true);
             let res = await fetch(GOOGLE_SCRIPT_URL, {
@@ -935,11 +962,13 @@
                     setSaveStatus('💾 गूगल शीट पर सेव करें', false);
                 }, 1800);
             } else {
-                setSaveStatus('❌ सेव नहीं हो सका', false);
+                savePending = false;
+                setSaveStatus('⚠️ स्थानीय रूप से सेव हो गया', false);
                 console.error('Google Sheet save failed:', responseText);
             }
         } catch(e) {
-            setSaveStatus('❌ कनेक्शन त्रुटि', false);
+            savePending = false;
+            setSaveStatus('⚠️ स्थानीय रूप से सेव हो गया', false);
             console.error('Google Sheet save error:', e);
         } finally {
             clearTimeout(saveStatusTimer);
