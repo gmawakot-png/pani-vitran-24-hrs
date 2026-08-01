@@ -338,6 +338,7 @@
             <button class="btn-action" id="toggleBottomNoticeBtn" style="background:#27ae60; margin-bottom:5px;" onclick="toggleBottomNoticeVisibility()">🔓 बॉटम संदेश बॉक्स (Public): चालू</button>
             <button class="btn-action" style="background:#e67e22; margin-bottom:5px;" onclick="reverseTable()">🔄 पूरी सारणी का क्रम उल्टा करें</button>
             <button class="btn-action" style="background:#27ae60;" id="saveBtnMain" onclick="saveDataToCloud()">☁️ गूगल शीट में सेव करें</button>
+            <button class="btn-action" style="background:#16a085;" onclick="downloadBackupFile()">📥 बैकअप डाउनलोड करें</button>
             <button class="btn-action" style="background:#8e44ad;" onclick="openChangePassModal()">🔑 पासवर्ड बदलें</button>
             
             <button class="btn-print-all" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें (18 प्रति पेज)</button>
@@ -450,6 +451,8 @@
     let saveStatusTimer = null;
     let savePending = false;
     let autoSaveTimer = null;
+    let saveInProgress = false;
+    let saveIntervalTimer = null;
 
     let initialData = [
         { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
@@ -511,6 +514,15 @@
         }, 1500);
     }
 
+    function startAutoSaveLoop() {
+        if (saveIntervalTimer) return;
+        saveIntervalTimer = setInterval(() => {
+            if (savePending && !saveInProgress) {
+                saveDataToCloud();
+            }
+        }, 1000);
+    }
+
     function saveLocalBackup(payload) {
         try {
             localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({
@@ -520,6 +532,45 @@
         } catch (e) {
             console.warn('लोकल बैकअप नहीं हो सका:', e);
         }
+    }
+
+    function downloadBackupFile() {
+        const payload = buildPayload();
+        const dataStr = JSON.stringify(payload, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pani-vitran-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setSaveStatus('📥 बैकअप डाउनलोड हो गया', false);
+    }
+
+    function buildPayload() {
+        return {
+            password: adminPassword,
+            notice: noticeMessage,
+            bottomNotice: bottomNoticeMessage,
+            isTablePublic: isTablePublic,
+            isBottomNoticePublic: isBottomNoticePublic,
+            selectedMode: selectedMode,
+            oddFirstMins: document.getElementById('oddFirstMins').value,
+            oddLastMins: document.getElementById('oddLastMins').value,
+            evenFirstMins: document.getElementById('evenFirstMins').value,
+            evenLastMins: document.getElementById('evenLastMins').value,
+            startDate: document.getElementById('startDateInput').value,
+            gapDays: document.getElementById('intervalInput').value,
+            totalPoolHours: document.getElementById('totalPoolHours').value,
+            hoursToDistribute: document.getElementById('hoursToDistribute').value,
+            startTime: document.getElementById('startTime').value,
+            currentOrder: currentOrder,
+            straightTimeState: straightTimeState,
+            reverseTimeState: reverseTimeState,
+            users: initialData
+        };
     }
 
     function saveAdminPasswordToStorage(password) {
@@ -535,7 +586,9 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
-            cache: 'no-store'
+            cache: 'no-store',
+            keepalive: true,
+            redirect: 'follow'
         };
 
         try {
@@ -550,6 +603,18 @@
             }
         } catch (e) {
             console.warn('सीधा Google Sheet POST असफल:', e);
+        }
+
+        try {
+            if (navigator.sendBeacon) {
+                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                const beaconOk = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+                if (beaconOk) {
+                    return { ok: true, responseText: '', fallback: true };
+                }
+            }
+        } catch (e) {
+            console.warn('sendBeacon fallback भी असफल:', e);
         }
 
         try {
@@ -963,34 +1028,43 @@
             }
         }
 
+        const backup = loadLocalBackup();
+        if (backup) {
+            if (backup.users && backup.users.length > 0) {
+                initialData = backup.users.map(u => ({
+                    ...u,
+                    extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
+                    isLocked: u.isLocked !== undefined ? u.isLocked : false
+                }));
+            }
+            if (backup.notice !== undefined) {
+                noticeMessage = backup.notice;
+                const noticeInput = document.getElementById('noticeInput');
+                if (noticeInput) noticeInput.value = noticeMessage;
+                updateNoticeText(noticeMessage);
+            }
+            if (backup.bottomNotice !== undefined) {
+                bottomNoticeMessage = backup.bottomNotice;
+                const bottomInput = document.getElementById('bottomNoticeInput');
+                if (bottomInput) bottomInput.value = bottomNoticeMessage;
+                updateBottomNoticeText(bottomNoticeMessage);
+            }
+            if (backup.password) {
+                adminPassword = backup.password;
+                saveAdminPasswordToStorage(adminPassword);
+            }
+        }
+
         applyModeTimeRules();
         calculateAll();
     }
 
     async function saveDataToCloud() {
-        if (!savePending && document.getElementById('floatingSaveBtn').innerText.includes('✅ सेव हो गया')) return;
-        let payload = {
-            password: adminPassword,
-            notice: noticeMessage,
-            bottomNotice: bottomNoticeMessage,
-            isTablePublic: isTablePublic,
-            isBottomNoticePublic: isBottomNoticePublic,
-            selectedMode: selectedMode,
-            oddFirstMins: document.getElementById('oddFirstMins').value,
-            oddLastMins: document.getElementById('oddLastMins').value,
-            evenFirstMins: document.getElementById('evenFirstMins').value,
-            evenLastMins: document.getElementById('evenLastMins').value,
-            startDate: document.getElementById('startDateInput').value,
-            gapDays: document.getElementById('intervalInput').value,
-            totalPoolHours: document.getElementById('totalPoolHours').value,
-            hoursToDistribute: document.getElementById('hoursToDistribute').value,
-            startTime: document.getElementById('startTime').value,
-            currentOrder: currentOrder,
-            straightTimeState: straightTimeState,
-            reverseTimeState: reverseTimeState,
-            users: initialData
-        };
+        if (saveInProgress) return;
+        if (!savePending && document.getElementById('floatingSaveBtn').innerText.includes('✅')) return;
 
+        saveInProgress = true;
+        let payload = buildPayload();
         saveLocalBackup(payload);
 
         try {
@@ -999,10 +1073,10 @@
 
             if (result.ok) {
                 savePending = false;
-                setSaveStatus('✅ सेव हो गया', false, true);
+                setSaveStatus('✅ Google Sheet पर सेव हो गया', false, true);
                 setTimeout(() => {
                     setSaveStatus('💾 गूगल शीट पर सेव करें', false);
-                }, 1800);
+                }, 1200);
             } else {
                 savePending = false;
                 setSaveStatus('⚠️ स्थानीय रूप से सेव हो गया', false);
@@ -1013,6 +1087,7 @@
             setSaveStatus('⚠️ स्थानीय रूप से सेव हो गया', false);
             console.error('Google Sheet save error:', e);
         } finally {
+            saveInProgress = false;
             clearTimeout(saveStatusTimer);
         }
     }
@@ -1462,7 +1537,8 @@
     }
 
     window.onload = function() {
-        loadDataFromCloud();
+        startAutoSaveLoop();
+    loadDataFromCloud();
     };
 </script>
 </body>
