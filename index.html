@@ -338,7 +338,6 @@
             <button class="btn-action" id="toggleBottomNoticeBtn" style="background:#27ae60; margin-bottom:5px;" onclick="toggleBottomNoticeVisibility()">🔓 बॉटम संदेश बॉक्स (Public): चालू</button>
             <button class="btn-action" style="background:#e67e22; margin-bottom:5px;" onclick="reverseTable()">🔄 पूरी सारणी का क्रम उल्टा करें</button>
             <button class="btn-action" style="background:#27ae60;" id="saveBtnMain" onclick="saveDataToCloud()">☁️ गूगल शीट में सेव करें</button>
-            <button class="btn-action" style="background:#16a085;" onclick="downloadBackupFile()">📥 बैकअप डाउनलोड करें</button>
             <button class="btn-action" style="background:#8e44ad;" onclick="openChangePassModal()">🔑 पासवर्ड बदलें</button>
             
             <button class="btn-print-all" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें (18 प्रति पेज)</button>
@@ -362,7 +361,7 @@
                     <th class="red-txt">से (शुरुआत)</th>
                     <th class="red-txt">तक (समाप्ति)</th>
                     <th style="width: 65px;">धनराशी</th>
-                    <th style="width: 75px;">रू० प्राप्त तारीख</th>
+                    <th style="width: 90px;">रू० प्राप्त तारीख (DD-MM-YY)</th>
                     <th style="width: 55px;">पर्ची</th>
                     <th id="actionHeader" style="display:none; width: 110px;">क्रम/नाम</th>
                     <th id="deleteHeader" style="display:none; width: 50px;">हटाएं</th>
@@ -961,63 +960,90 @@
         }
     }
 
+    function applyLoadedPayload(payload) {
+        if (!payload) return false;
+
+        const hasRemoteUsers = Array.isArray(payload.users) && payload.users.length > 0;
+        const hasRemoteSettings = payload.password !== undefined || payload.notice !== undefined || payload.bottomNotice !== undefined || payload.isTablePublic !== undefined || payload.isBottomNoticePublic !== undefined || payload.selectedMode !== undefined || payload.oddFirstMins !== undefined || payload.oddLastMins !== undefined || payload.evenFirstMins !== undefined || payload.evenLastMins !== undefined || payload.startDate !== undefined || payload.gapDays !== undefined || payload.totalPoolHours !== undefined || payload.hoursToDistribute !== undefined || payload.startTime !== undefined || payload.currentOrder !== undefined || payload.straightTimeState !== undefined || payload.reverseTimeState !== undefined;
+
+        if (hasRemoteUsers) {
+            initialData = payload.users.map(u => ({
+                ...u,
+                extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
+                isLocked: u.isLocked !== undefined ? u.isLocked : false
+            }));
+        }
+
+        const storedPassword = localStorage.getItem(LOCAL_PASSWORD_KEY);
+        if (storedPassword) {
+            adminPassword = storedPassword;
+        } else if (payload.password) {
+            adminPassword = payload.password;
+            saveAdminPasswordToStorage(adminPassword);
+        }
+
+        if (payload.notice !== undefined) {
+            noticeMessage = payload.notice;
+            const noticeInput = document.getElementById('noticeInput');
+            if (noticeInput) noticeInput.value = noticeMessage;
+            updateNoticeText(noticeMessage);
+        }
+        if (payload.bottomNotice !== undefined) {
+            bottomNoticeMessage = payload.bottomNotice;
+            const bottomInput = document.getElementById('bottomNoticeInput');
+            if (bottomInput) bottomInput.value = bottomNoticeMessage;
+            updateBottomNoticeText(bottomNoticeMessage);
+        }
+        if (payload.isTablePublic !== undefined) isTablePublic = payload.isTablePublic;
+        if (payload.isBottomNoticePublic !== undefined) isBottomNoticePublic = payload.isBottomNoticePublic;
+        if (payload.selectedMode) {
+            selectedMode = payload.selectedMode;
+            let radios = document.getElementsByName('waterDistributionMode');
+            radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
+        }
+        if (payload.oddFirstMins !== undefined) document.getElementById('oddFirstMins').value = payload.oddFirstMins;
+        if (payload.oddLastMins !== undefined) document.getElementById('oddLastMins').value = payload.oddLastMins;
+        if (payload.evenFirstMins !== undefined) document.getElementById('evenFirstMins').value = payload.evenFirstMins;
+        if (payload.evenLastMins !== undefined) document.getElementById('evenLastMins').value = payload.evenLastMins;
+
+        if (payload.startDate !== undefined) document.getElementById('startDateInput').value = payload.startDate;
+        if (payload.gapDays !== undefined) document.getElementById('intervalInput').value = payload.gapDays;
+        if (payload.totalPoolHours !== undefined) document.getElementById('totalPoolHours').value = payload.totalPoolHours;
+        if (payload.hoursToDistribute !== undefined) document.getElementById('hoursToDistribute').value = payload.hoursToDistribute;
+        if (payload.startTime !== undefined) document.getElementById('startTime').value = payload.startTime;
+
+        if (payload.currentOrder === "straight" || payload.currentOrder === "reverse") {
+            currentOrder = payload.currentOrder;
+        }
+        if (payload.straightTimeState) straightTimeState = payload.straightTimeState;
+        if (payload.reverseTimeState) reverseTimeState = payload.reverseTimeState;
+
+        return hasRemoteUsers || hasRemoteSettings;
+    }
+
     async function loadDataFromCloud() {
+        let loadedFromCloud = false;
         try {
-            let res = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
+            const cacheBuster = `?t=${Date.now()}`;
+            let res = await fetch(GOOGLE_SCRIPT_URL + cacheBuster, {
+                method: 'GET',
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
             if (!res.ok) throw new Error("डेटा लोड करने में विफल");
             let record = await res.json();
-            
-            if(record) {
-                if(record.users && record.users.length > 0) {
-                    initialData = record.users.map(u => ({
-                        ...u,
-                        extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
-                        isLocked: u.isLocked !== undefined ? u.isLocked : false
-                    }));
-                }
-                const storedPassword = localStorage.getItem(LOCAL_PASSWORD_KEY);
-                if (storedPassword) {
-                    adminPassword = storedPassword;
-                } else if(record.password) {
-                    adminPassword = record.password;
-                    saveAdminPasswordToStorage(adminPassword);
-                }
-                if(record.notice) {
-                    noticeMessage = record.notice;
-                    document.getElementById('noticeInput').value = noticeMessage;
-                    updateNoticeText(noticeMessage);
-                }
-                if(record.bottomNotice) {
-                    bottomNoticeMessage = record.bottomNotice;
-                    document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
-                    updateBottomNoticeText(bottomNoticeMessage);
-                }
-                if(record.isTablePublic !== undefined) isTablePublic = record.isTablePublic;
-                if(record.isBottomNoticePublic !== undefined) isBottomNoticePublic = record.isBottomNoticePublic;
-                if(record.selectedMode) {
-                    selectedMode = record.selectedMode;
-                    let radios = document.getElementsByName('waterDistributionMode');
-                    radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
-                }
-                if(record.oddFirstMins !== undefined) document.getElementById('oddFirstMins').value = record.oddFirstMins;
-                if(record.oddLastMins !== undefined) document.getElementById('oddLastMins').value = record.oddLastMins;
-                if(record.evenFirstMins !== undefined) document.getElementById('evenFirstMins').value = record.evenFirstMins;
-                if(record.evenLastMins !== undefined) document.getElementById('evenLastMins').value = record.evenLastMins;
-
-                if(record.startDate) document.getElementById('startDateInput').value = record.startDate;
-                if(record.gapDays) document.getElementById('intervalInput').value = record.gapDays;
-                if(record.totalPoolHours !== undefined) document.getElementById('totalPoolHours').value = record.totalPoolHours;
-                if(record.hoursToDistribute !== undefined) document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
-                if(record.startTime !== undefined) document.getElementById('startTime').value = record.startTime;
-
-                if(record.currentOrder === "straight" || record.currentOrder === "reverse") {
-                    currentOrder = record.currentOrder;
-                }
-                if(record.straightTimeState) straightTimeState = record.straightTimeState;
-                if(record.reverseTimeState) reverseTimeState = record.reverseTimeState;
+            if (record) {
+                loadedFromCloud = applyLoadedPayload(record);
             }
         } catch(e) {
             console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
+        }
+
+        if (!loadedFromCloud) {
+            const backup = loadLocalBackup();
+            if (backup) {
+                applyLoadedPayload(backup);
+            }
         }
 
         if (Object.keys(straightTimeState).length === 0 && Object.keys(reverseTimeState).length === 0) {
@@ -1025,33 +1051,6 @@
                 straightTimeState = saveCurrentOrderTimeState();
             } else {
                 reverseTimeState = saveCurrentOrderTimeState();
-            }
-        }
-
-        const backup = loadLocalBackup();
-        if (backup) {
-            if (backup.users && backup.users.length > 0) {
-                initialData = backup.users.map(u => ({
-                    ...u,
-                    extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
-                    isLocked: u.isLocked !== undefined ? u.isLocked : false
-                }));
-            }
-            if (backup.notice !== undefined) {
-                noticeMessage = backup.notice;
-                const noticeInput = document.getElementById('noticeInput');
-                if (noticeInput) noticeInput.value = noticeMessage;
-                updateNoticeText(noticeMessage);
-            }
-            if (backup.bottomNotice !== undefined) {
-                bottomNoticeMessage = backup.bottomNotice;
-                const bottomInput = document.getElementById('bottomNoticeInput');
-                if (bottomInput) bottomInput.value = bottomNoticeMessage;
-                updateBottomNoticeText(bottomNoticeMessage);
-            }
-            if (backup.password) {
-                adminPassword = backup.password;
-                saveAdminPasswordToStorage(adminPassword);
             }
         }
 
@@ -1190,7 +1189,7 @@
                 <td class="red-txt">${startTimeFormatted}</td>
                 <td class="red-txt">${endTimeFormatted}</td>
                 <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="clean-input" data-row-idx="${idx}" data-field="amount" style="width:60px; text-align:center;" value="${row.amount || ''}" placeholder="0" oninput="handleNumericInput(event, ${idx}, 'amount', this.value);" ${!isAdmin ? 'readonly' : ''}></td>
-                <td><input type="text" class="clean-input" data-row-idx="${idx}" data-field="date" style="width:75px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM" oninput="rememberActiveInput(); updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" class="clean-input" data-row-idx="${idx}" data-field="date" style="width:85px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM-YY" maxlength="10" oninput="rememberActiveInput(); updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
                 <td>
                     <button class="btn-row-print" onclick="printRowSlip(${idx})">🖨️ पर्ची</button>
                 </td>
