@@ -514,7 +514,7 @@
 
     function debouncedCalculate() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { calculateAll(); }, 300);
+        debounceTimer = setTimeout(() => { updateCalculatedValuesOnly(); }, 300);
     }
 
     function setSaveStatus(message, isBusy) {
@@ -563,7 +563,7 @@
     function handleModeChange(val) {
         selectedMode = val;
         applyModeTimeRules();
-        calculateAll();
+        updateCalculatedValuesOnly();
         markDataDirty();
     }
 
@@ -582,14 +582,18 @@
             let isFirst = (idx === 0);
             let isLast = (idx === totalRows - 1);
 
+            // अगर यूजर ने रो को मैनुअली LOCK किया है, तो मोड चेंज का असर उसपर नहीं होगा
+            if (row.isLocked) return;
+
+            let savedState = (currentOrder === "straight") ? straightTimeState[row.name] : reverseTimeState[row.name];
+            let baseExtra = savedState ? (parseFloat(savedState.extraMinutes) || 0) : 0;
+
             if (isFirst) {
-                row.extraMinutes = firstMins;
+                row.extraMinutes = baseExtra + firstMins;
             } else if (isLast) {
-                row.extraMinutes = lastMins;
+                row.extraMinutes = baseExtra + lastMins;
             } else {
-                if (!row.isLocked) {
-                    row.extraMinutes = row.extraMinutes || 0;
-                }
+                row.extraMinutes = baseExtra;
             }
         });
 
@@ -611,7 +615,7 @@
         initialData.forEach(row => {
             let saved = state[row.name];
             if (saved) {
-                row.extraMinutes = saved.isLocked ? (parseFloat(saved.extraMinutes) || 0) : 0;
+                row.extraMinutes = parseFloat(saved.extraMinutes) || 0;
                 row.isLocked = saved.isLocked || false;
             } else {
                 row.extraMinutes = 0;
@@ -662,7 +666,7 @@
             applyModeTimeRules();
         }
 
-        calculateAll();
+        updateCalculatedValuesOnly();
         markDataDirty();
     }
 
@@ -851,7 +855,7 @@
         select.value = currentVal;
     }
 
-    // बिना पूरी टेबल को रि-रेंडर किए समय और सारांश अपडेट करने का फंक्शन (हिलने की समस्या का समाधान)
+    // टाइप करते समय बिना DOM रि-रेंडर किए गणनाएँ करने वाला फंक्शन (स्क्रीन हिलना बंद)
     function updateCalculatedValuesOnly() {
         let totalBigha = 0;
         let totalMinutesCalc = 0;
@@ -1044,8 +1048,17 @@
             initialData[idx].extraMinutes = isNaN(parsed) ? 0 : parsed;
         }
 
-        if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
-        else reverseTimeState = saveCurrentOrderTimeState();
+        if (currentOrder === "straight") {
+            straightTimeState[initialData[idx].name] = {
+                extraMinutes: initialData[idx].extraMinutes,
+                isLocked: initialData[idx].isLocked
+            };
+        } else {
+            reverseTimeState[initialData[idx].name] = {
+                extraMinutes: initialData[idx].extraMinutes,
+                isLocked: initialData[idx].isLocked
+            };
+        }
 
         updateCalculatedValuesOnly();
         markDataDirty();
@@ -1059,8 +1072,17 @@
         let inputEl = document.querySelector(`.clean-input[data-row-idx="${idx}"][data-field="extraMinutes"]`);
         if (inputEl) inputEl.value = initialData[idx].extraMinutes;
 
-        if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
-        else reverseTimeState = saveCurrentOrderTimeState();
+        if (currentOrder === "straight") {
+            straightTimeState[initialData[idx].name] = {
+                extraMinutes: initialData[idx].extraMinutes,
+                isLocked: initialData[idx].isLocked
+            };
+        } else {
+            reverseTimeState[initialData[idx].name] = {
+                extraMinutes: initialData[idx].extraMinutes,
+                isLocked: initialData[idx].isLocked
+            };
+        }
 
         updateCalculatedValuesOnly();
         markDataDirty();
@@ -1068,7 +1090,20 @@
 
     function toggleRowLock(idx) {
         initialData[idx].isLocked = !initialData[idx].isLocked;
-        calculateAll();
+        
+        if (currentOrder === "straight") {
+            straightTimeState[initialData[idx].name] = {
+                extraMinutes: initialData[idx].extraMinutes,
+                isLocked: initialData[idx].isLocked
+            };
+        } else {
+            reverseTimeState[initialData[idx].name] = {
+                extraMinutes: initialData[idx].extraMinutes,
+                isLocked: initialData[idx].isLocked
+            };
+        }
+
+        renderTable();
         markDataDirty();
     }
 
