@@ -432,8 +432,9 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2RvuJSH6o_B-BqCunk5MQtYj7tZxw1lsy5vsTWntoCZa1WSrLtcN6YwDEh0x0TnuJXg/exec";
 
     let isAdmin = false;
-    let adminPassword = "2050"; 
     const LOCAL_BACKUP_KEY = "paniVitranLocalBackup";
+    const LOCAL_PASSWORD_KEY = "paniVitranAdminPassword";
+    let adminPassword = localStorage.getItem(LOCAL_PASSWORD_KEY) || "2050";
     let noticeMessage = "";
     let bottomNoticeMessage = ""; 
     let isTablePublic = false; 
@@ -518,6 +519,14 @@
             }));
         } catch (e) {
             console.warn('लोकल बैकअप नहीं हो सका:', e);
+        }
+    }
+
+    function saveAdminPasswordToStorage(password) {
+        try {
+            localStorage.setItem(LOCAL_PASSWORD_KEY, password);
+        } catch (e) {
+            console.warn('पासवर्ड लोकल स्टोरेज में नहीं बचा:', e);
         }
     }
 
@@ -874,6 +883,7 @@
         if(oldP === adminPassword) {
             if(newP && newP.trim() !== "") {
                 adminPassword = newP.trim();
+                saveAdminPasswordToStorage(adminPassword);
                 closeChangePassModal();
                 setSaveStatus('🔐 नया पासवर्ड सेट हो गया', false);
                 scheduleAutoSave();
@@ -900,8 +910,12 @@
                         isLocked: u.isLocked !== undefined ? u.isLocked : false
                     }));
                 }
-                if(record.password && (!adminPassword || adminPassword === "2050")) {
+                const storedPassword = localStorage.getItem(LOCAL_PASSWORD_KEY);
+                if (storedPassword) {
+                    adminPassword = storedPassword;
+                } else if(record.password) {
                     adminPassword = record.password;
+                    saveAdminPasswordToStorage(adminPassword);
                 }
                 if(record.notice) {
                     noticeMessage = record.notice;
