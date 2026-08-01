@@ -231,14 +231,19 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; gap:8px;">
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">वर्तमान तारीख चुनें:</span>
-                        <input type="date" id="startDateInput" style="width:130px; padding:4px; font-size:12px; border:1px solid #27ae60; border-radius:4px; font-weight:bold;" oninput="generate30DaysCalendar()">
+                        <div style="display:flex; align-items:center; gap:4px; margin-top:3px;">
+                            <input type="date" id="startDateInput" style="width:130px; padding:4px; font-size:12px; border:1px solid #27ae60; border-radius:4px; font-weight:bold;" onchange="handleDateSelection(this.value)" onfocus="if (typeof this.showPicker === 'function') this.showPicker();">
+                            <button type="button" onclick="const el=document.getElementById('startDateInput'); el.focus(); if (typeof el.showPicker === 'function') el.showPicker();" style="padding:4px 6px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; cursor:pointer;">📅</button>
+                        </div>
                     </div>
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">दिन का गैप:</span>
                         <div style="display:flex; align-items:center; gap:3px; border:1px solid #d9f5e6; border-radius:6px; padding:2px 4px; background:#fcfffd; width:fit-content;">
-                            <button type="button" onclick="changeGapValue(-1)" style="width:20px; height:20px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:12px; font-weight:bold; color:#27ae60; cursor:pointer;">−</button>
+                            <div style="display:flex; flex-direction:column; gap:2px;">
+                                <button type="button" onclick="changeGapValue(1)" style="width:18px; height:18px; border:1px solid #27ae60; border-radius:3px; background:#f5fbf7; font-size:10px; font-weight:bold; color:#27ae60; cursor:pointer; line-height:1;">▲</button>
+                                <button type="button" onclick="changeGapValue(-1)" style="width:18px; height:18px; border:1px solid #27ae60; border-radius:3px; background:#f5fbf7; font-size:10px; font-weight:bold; color:#27ae60; cursor:pointer; line-height:1;">▼</button>
+                            </div>
                             <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" style="width:60px; padding:4px; text-align:center; font-size:13px; font-weight:bold; color:#c0392b; border:none; outline:none; background:transparent;" oninput="generate30DaysCalendar()">
-                            <button type="button" onclick="changeGapValue(1)" style="width:20px; height:20px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:12px; font-weight:bold; color:#27ae60; cursor:pointer;">+</button>
                         </div>
                     </div>
                 </div>
@@ -458,26 +463,27 @@
     let saveInProgress = false;
     let saveIntervalTimer = null;
     let lastSyncedAt = null;
+    let tableRenderTimer = null;
 
     let initialData = [
-        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री राजेश कुमार जी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री कांता डबराल जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती बसंती देवी", bigha: 1, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री विपिन खंतवाल", bigha: 3, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती उषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती अंजू देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "गणेश", bigha: 3.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती गीता देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती मनीषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री राजू बिष्ट", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती मनीषा देवी २", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती पिंकी देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री मस्तान सिंह जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती पुनीता देवी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती जस्सी देवी", bigha: 3, amount: 100, date: "25-07", extraMinutes: 0, isLocked: false }
+        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्री राजेश कुमार जी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्री कांता डबराल जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती बसंती देवी", bigha: 1, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्री विपिन खंतवाल", bigha: 3, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती उषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती अंजू देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "गणेश", bigha: 3.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती गीता देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती मनीषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्री राजू बिष्ट", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती मनीषा देवी २", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती पिंकी देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्री मस्तान सिंह जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती पुनीता देवी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
+        { name: "श्रीमती जस्सी देवी", bigha: 3, amount: 100, date: "25-07", extraMinutes: 0, isLocked: false, manualExtra: false }
     ];
 
     function updateLiveClock() {
@@ -497,35 +503,33 @@
     function setSaveStatus(message, isBusy, isSuccess = false) {
         let btn = document.getElementById('floatingSaveBtn');
         let statusBox = document.getElementById('saveStatusBox');
+        let displayMessage = message || (isBusy ? '⏳ सेव हो रहा है' : (isSuccess ? '✅ सेव हो गया' : '🔄 ऑटो-सेव चालू'));
+        let stateKey = isBusy ? 'busy' : (isSuccess ? 'success' : 'idle');
+
+        if (statusBox && statusBox.dataset.state === stateKey && statusBox.innerText === displayMessage) {
+            return;
+        }
+
         if (statusBox) {
-            statusBox.innerText = message;
+            statusBox.dataset.state = stateKey;
+            statusBox.innerText = displayMessage;
             statusBox.style.background = isBusy ? '#fff3cd' : (isSuccess ? '#e8f8f5' : '#eef5f9');
             statusBox.style.color = isBusy ? '#92400e' : (isSuccess ? '#117a65' : '#1a5276');
             statusBox.style.borderColor = isBusy ? '#f59e0b' : (isSuccess ? '#a3e4d7' : '#b8daff');
         }
         if (!btn) return;
-        btn.innerText = message;
+        btn.innerText = displayMessage;
         btn.style.background = isBusy ? '#f39c12' : (isSuccess ? '#27ae60' : '#2980b9');
     }
 
     function markDataDirty() {
         savePending = true;
-        setSaveStatus('⏳ ऑटो-सेव पेंडिंग...', true);
         clearTimeout(saveStatusTimer);
-        saveStatusTimer = setTimeout(() => {
-            if (savePending) {
-                setSaveStatus('💾 गूगल शीट पर सेव करें', false);
-            }
-        }, 1500);
+        setSaveStatus('🔄 ऑटो-सेव चालू', false);
     }
 
     function startAutoSaveLoop() {
-        if (saveIntervalTimer) return;
-        saveIntervalTimer = setInterval(() => {
-            if (savePending && !saveInProgress) {
-                saveDataToCloud();
-            }
-        }, 1000);
+        return;
     }
 
     function startLiveSyncLoop() {
@@ -533,7 +537,7 @@
             if (document.visibilityState === 'visible') {
                 loadDataFromCloud(false);
             }
-        }, 8000);
+        }, 20000);
     }
 
     function saveLocalBackup(payload) {
@@ -655,10 +659,8 @@
 
     function scheduleAutoSave() {
         clearTimeout(autoSaveTimer);
-        markDataDirty();
-        autoSaveTimer = setTimeout(() => {
-            saveDataToCloud();
-        }, 1200);
+        savePending = true;
+        setSaveStatus('📝 बदलाव दर्ज हुए — “गूगल शीट में सेव करें” पर दबाएँ', false);
     }
 
     function rememberActiveInput() {
@@ -705,6 +707,67 @@
             value = value.replace(/^0+/, '');
         }
         return value;
+    }
+
+    function refreshSummaryCards() {
+        const totalBigha = initialData.reduce((sum, row) => sum + (parseFloat(row.bigha) || 0), 0);
+        const hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
+        const targetTotalMinutes = hoursToDistribute * 60;
+        let totalMinutesCalc = 0;
+        let totalAmountVal = 0;
+        let totalExtraMinutes = 0;
+
+        initialData.forEach((row) => {
+            const bigha = parseFloat(row.bigha) || 0;
+            const amount = parseFloat(row.amount) || 0;
+            const extra = parseFloat(row.extraMinutes) || 0;
+            const pureMinutes = totalBigha > 0 ? (bigha * targetTotalMinutes / totalBigha) : 0;
+            const minutes = pureMinutes + extra;
+
+            totalAmountVal += amount;
+            totalExtraMinutes += extra;
+            totalMinutesCalc += minutes;
+        });
+
+        document.getElementById('totalMinFoot').innerText = Math.round(totalMinutesCalc);
+        let totalHours = Math.floor(totalMinutesCalc / 60);
+        let totalMins = Math.round(totalMinutesCalc % 60);
+        document.getElementById('totalDurationFoot').innerText = totalHours + " घंटे " + totalMins + " मिनट";
+        document.getElementById('totalExtraFoot').innerText = Math.round(totalExtraMinutes);
+        document.getElementById('totalAmountFoot').innerText = totalAmountVal;
+        document.getElementById('sumBigha').innerText = totalBigha;
+
+        let distH = Math.floor(targetTotalMinutes / 60);
+        let distM = Math.round(targetTotalMinutes % 60);
+        document.getElementById('displayDistributedHM').innerText = `${distH} घंटे ${distM} मिनट`;
+
+        let totalDistributionMinutes = targetTotalMinutes;
+        initialData.forEach((curr) => {
+            totalDistributionMinutes += (curr.extraMinutes || 0);
+        });
+
+        let totalDistH = Math.floor(totalDistributionMinutes / 60);
+        let totalDistM = Math.round(totalDistributionMinutes % 60);
+        document.getElementById('displayTotalDistributionHM').innerText = `${totalDistH} घंटे ${totalDistM} मिनट`;
+
+        let poolTotalMins = (parseFloat(document.getElementById('totalPoolHours').value) || 24) * 60;
+        let remMins = Math.max(0, poolTotalMins - totalDistributionMinutes);
+        let remHPart = Math.floor(remMins / 60);
+        let remMPart = Math.round(remMins % 60);
+
+        let remText = "";
+        if(remHPart > 0 && remMPart > 0) remText = `${remHPart} घंटे ${remMPart} मिनट`;
+        else if(remHPart > 0) remText = `${remHPart} घंटे`;
+        else remText = `${remMPart} मिनट`;
+
+        document.getElementById('displayRemainingHours').innerText = remText;
+    }
+
+    function requestTableRender(delay = 180) {
+        clearTimeout(tableRenderTimer);
+        tableRenderTimer = setTimeout(() => {
+            renderTable();
+        }, delay);
     }
 
     function handleNumericInput(event, idx, field, value) {
@@ -755,7 +818,11 @@
         if (field === 'extraMinutes') {
             updateRowExtra(idx, sanitized);
         } else {
-            updateRowField(idx, field, sanitized);
+            updateRowField(idx, field, sanitized, field === 'bigha');
+        }
+
+        if (field === 'amount' || field === 'bigha' || field === 'extraMinutes') {
+            refreshSummaryCards();
         }
 
         setTimeout(() => {
@@ -780,6 +847,7 @@
         target.value = sanitized;
         rememberActiveInput();
         updateRowExtra(idx, sanitized);
+        refreshSummaryCards();
         setTimeout(() => {
             try {
                 let pos = target.value.length;
@@ -834,7 +902,7 @@
             let isFirst = (idx === 0);
             let isLast = (idx === totalRows - 1);
 
-            if (!row.isLocked) {
+            if (!row.isLocked && !row.manualExtra) {
                 if (isFirst) {
                     row.extraMinutes = firstMins;
                 } else if (isLast) {
@@ -984,7 +1052,8 @@
             initialData = payload.users.map(u => ({
                 ...u,
                 extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
-                isLocked: u.isLocked !== undefined ? u.isLocked : false
+                isLocked: u.isLocked !== undefined ? u.isLocked : false,
+                manualExtra: u.manualExtra !== undefined ? u.manualExtra : false
             }));
         }
 
@@ -1100,6 +1169,8 @@
                 setTimeout(() => {
                     setSaveStatus('💾 गूगल शीट पर सेव करें', false);
                 }, 1200);
+                applyLoadedPayload(payload);
+                calculateAll();
                 setTimeout(() => {
                     loadDataFromCloud(true);
                 }, 1500);
@@ -1275,10 +1346,24 @@
         setTimeout(restoreFocusAfterRender, 0);
     }
 
-    function updateRowField(idx, field, val) {
+    function updateAmountSummary() {
+        let totalAmountVal = initialData.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+        let totalAmountEl = document.getElementById('totalAmountFoot');
+        if (totalAmountEl) {
+            totalAmountEl.innerText = totalAmountVal;
+        }
+    }
+
+    function updateRowField(idx, field, val, shouldRecalculate = false) {
         initialData[idx][field] = val;
-        scheduleAutoSave();
-        debouncedCalculate();
+        if (field === 'amount') {
+            updateAmountSummary();
+            refreshSummaryCards();
+            return;
+        }
+        if (shouldRecalculate) {
+            refreshSummaryCards();
+        }
     }
 
     function normalizeNumberInput(value) {
@@ -1289,26 +1374,27 @@
 
     function updateRowExtra(idx, val) {
         initialData[idx].extraMinutes = normalizeNumberInput(val);
+        initialData[idx].manualExtra = true;
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
-        scheduleAutoSave();
-        calculateAll();
+        refreshSummaryCards();
     }
 
     function adjustRowExtra(idx, delta) {
         let current = parseFloat(initialData[idx].extraMinutes);
         if (Number.isNaN(current)) current = 0;
         initialData[idx].extraMinutes = current + delta;
+        initialData[idx].manualExtra = true;
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
-        scheduleAutoSave();
-        calculateAll();
+        refreshSummaryCards();
+        renderTable();
     }
 
     function toggleRowLock(idx) {
         initialData[idx].isLocked = !initialData[idx].isLocked;
-        scheduleAutoSave();
-        calculateAll();
+        refreshSummaryCards();
+        renderTable();
     }
 
     function addRowAt(index, position) {
@@ -1372,6 +1458,14 @@
         return `${pad(newHrs12)}:${pad(newMins)}:${pad(newSecs)} ${newMod}`;
     }
 
+    function handleDateSelection(value) {
+        let input = document.getElementById('startDateInput');
+        if (!input) return;
+        input.value = value || '';
+        generate30DaysCalendar();
+        scheduleAutoSave();
+    }
+
     function changeGapValue(delta) {
         let input = document.getElementById('intervalInput');
         if (!input) return;
@@ -1390,7 +1484,8 @@
         waterDates = [];
 
         if(!startInput) return;
-        let currentDate = new Date(startInput);
+        let currentDate = new Date(`${startInput}T00:00:00`);
+        if (isNaN(currentDate.getTime())) return;
 
         for(let i=0; i<30; i++) {
             let dStr = currentDate.toLocaleDateString('hi-IN', { day: '2-digit', month: 'long' });
@@ -1573,7 +1668,6 @@
     }
 
     window.onload = function() {
-        startAutoSaveLoop();
         startLiveSyncLoop();
         loadDataFromCloud(true);
     };
