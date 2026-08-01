@@ -129,7 +129,6 @@
         .btn-arrow { background: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; padding: 2px 4px; font-size: 11px; border-radius: 3px; cursor: pointer; line-height: 1; }
         .btn-arrow:hover { background: #dfe6e9; }
 
-        /* दिन का गैप बॉक्स स्टाइलिंग */
         .interval-box-container {
             display: inline-flex;
             align-items: center;
@@ -659,11 +658,7 @@
         target.value = sanitized;
         rememberActiveInput();
 
-        // बीच वाले बॉक्स को अपने आप लॉक (isLocked = true) करें
-        if (idx !== 0 && idx !== initialData.length - 1) {
-            initialData[idx].isLocked = true;
-        }
-
+        // बदलाव: टाइप करने पर अब स्वतः (Auto) लॉक नहीं होगा।
         updateRowExtra(idx, sanitized);
         setTimeout(() => {
             try {
@@ -702,7 +697,7 @@
         markDataDirty();
     }
 
-    /* 1st aur Last box me uper wla formula aur beech wle Locked box ko surakshit rakhna */
+    /* 1st और Last वाले बॉक्स में ऊपर वाले फॉर्मूले का समय लागू करना और लॉक स्थिति संभालना */
     function applyModeTimeRules() {
         if (initialData.length === 0) return;
         let settingsPrefix = "odd";
@@ -718,15 +713,15 @@
             let isFirst = (idx === 0);
             let isLast = (idx === totalRows - 1);
 
-            // 1st और Last वाले बॉक्स में हमेशा ऊपर वाले फॉर्मूले का समय लागू होगा
+            // 1st और Last वाले बॉक्स में Odd/Even के अनुसार मान लागू होंगे
             if (isFirst) {
                 row.extraMinutes = firstMins;
             } else if (isLast) {
                 row.extraMinutes = lastMins;
             } else {
-                // बीच वाले बॉक्स: अगर वे अनलॉक्ड हैं तभी 0 होंगे, अगर लॉक्ड (isLocked: true) हैं तो उनका मान सुरक्षित रहेगा!
+                // अनलॉक्ड बीच के बॉक्स: यदि वे अनलॉक्ड हैं, तो क्रम बदलने पर समय 0 हो जाएगा
                 if (!row.isLocked) {
-                    row.extraMinutes = 0;
+                    row.extraMinutes = row.extraMinutes || 0;
                 }
             }
         });
@@ -749,7 +744,8 @@
         initialData.forEach(row => {
             let saved = state[row.name];
             if (saved) {
-                row.extraMinutes = Math.max(0, parseFloat(saved.extraMinutes) || 0);
+                // यदि पंक्ति मैनुअल लॉक (Locked) है तो उसका समय बना रहेगा, अन्यथा 0 हो जाएगा
+                row.extraMinutes = saved.isLocked ? Math.max(0, parseFloat(saved.extraMinutes) || 0) : 0;
                 row.isLocked = saved.isLocked || false;
             } else {
                 row.extraMinutes = 0;
@@ -792,11 +788,12 @@
 
         if (currentOrder === "straight") {
             currentOrder = "reverse";
+            restoreOrderTimeState(reverseTimeState);
             applyModeTimeRules();
-            reverseTimeState = saveCurrentOrderTimeState();
         } else {
             currentOrder = "straight";
             restoreOrderTimeState(straightTimeState);
+            applyModeTimeRules();
         }
 
         calculateAll();
@@ -927,7 +924,6 @@
         calculateAll();
     }
 
-    /* बेहतर गूगल सेव फंक्शन */
     async function saveDataToCloud() {
         let payload = {
             password: adminPassword,
@@ -1151,11 +1147,6 @@
         let current = parseFloat(initialData[idx].extraMinutes);
         if (Number.isNaN(current)) current = 0;
         initialData[idx].extraMinutes = current + delta;
-
-        // बीच वाले बॉक्स को अपने आप लॉक (isLocked = true) करें
-        if (idx !== 0 && idx !== initialData.length - 1) {
-            initialData[idx].isLocked = true;
-        }
 
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
