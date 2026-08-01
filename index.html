@@ -235,7 +235,11 @@
                     </div>
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">दिन का गैप:</span>
-                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" style="width:75px; padding:4px; text-align:center; font-size:13px; font-weight:bold; color:#c0392b; border:1px solid #27ae60; border-radius:4px;" oninput="generate30DaysCalendar()">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <button type="button" onclick="changeGapValue(-1)" style="width:22px; height:22px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:13px; font-weight:bold; color:#27ae60; cursor:pointer;">−</button>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" style="width:75px; padding:4px; text-align:center; font-size:13px; font-weight:bold; color:#c0392b; border:1px solid #27ae60; border-radius:4px;" oninput="generate30DaysCalendar()">
+                            <button type="button" onclick="changeGapValue(1)" style="width:22px; height:22px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:13px; font-weight:bold; color:#27ae60; cursor:pointer;">+</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -338,6 +342,7 @@
             <button class="btn-action" id="toggleBottomNoticeBtn" style="background:#27ae60; margin-bottom:5px;" onclick="toggleBottomNoticeVisibility()">🔓 बॉटम संदेश बॉक्स (Public): चालू</button>
             <button class="btn-action" style="background:#e67e22; margin-bottom:5px;" onclick="reverseTable()">🔄 पूरी सारणी का क्रम उल्टा करें</button>
             <button class="btn-action" style="background:#27ae60;" id="saveBtnMain" onclick="saveDataToCloud()">☁️ गूगल शीट में सेव करें</button>
+            <button class="btn-action" style="background:#34495e;" onclick="loadDataFromCloud(true)">🔄 Cloud से फिर से लोड करें</button>
             <button class="btn-action" style="background:#8e44ad;" onclick="openChangePassModal()">🔑 पासवर्ड बदलें</button>
             
             <button class="btn-print-all" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें (18 प्रति पेज)</button>
@@ -452,6 +457,7 @@
     let autoSaveTimer = null;
     let saveInProgress = false;
     let saveIntervalTimer = null;
+    let lastSyncedAt = null;
 
     let initialData = [
         { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
@@ -1021,10 +1027,12 @@
         return hasRemoteUsers || hasRemoteSettings;
     }
 
-    async function loadDataFromCloud() {
+    async function loadDataFromCloud(forceRefresh = false, attempt = 0) {
+        const maxAttempts = forceRefresh ? 3 : 2;
         let loadedFromCloud = false;
+
         try {
-            const cacheBuster = `?t=${Date.now()}`;
+            const cacheBuster = `?t=${Date.now()}${forceRefresh ? '&force=1' : ''}`;
             let res = await fetch(GOOGLE_SCRIPT_URL + cacheBuster, {
                 method: 'GET',
                 cache: 'no-store',
@@ -1034,9 +1042,17 @@
             let record = await res.json();
             if (record) {
                 loadedFromCloud = applyLoadedPayload(record);
+                const remoteSavedAt = record.savedAt || record.updatedAt || null;
+                if (loadedFromCloud && remoteSavedAt) {
+                    lastSyncedAt = remoteSavedAt;
+                }
             }
         } catch(e) {
             console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
+            if (attempt < maxAttempts - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                return loadDataFromCloud(forceRefresh, attempt + 1);
+            }
         }
 
         if (!loadedFromCloud) {
@@ -1076,6 +1092,9 @@
                 setTimeout(() => {
                     setSaveStatus('💾 गूगल शीट पर सेव करें', false);
                 }, 1200);
+                setTimeout(() => {
+                    loadDataFromCloud(true);
+                }, 1500);
             } else {
                 savePending = false;
                 setSaveStatus('⚠️ स्थानीय रूप से सेव हो गया', false);
@@ -1345,6 +1364,16 @@
         return `${pad(newHrs12)}:${pad(newMins)}:${pad(newSecs)} ${newMod}`;
     }
 
+    function changeGapValue(delta) {
+        let input = document.getElementById('intervalInput');
+        if (!input) return;
+        let current = parseInt(input.value) || 1;
+        let nextValue = Math.max(1, current + delta);
+        input.value = nextValue;
+        generate30DaysCalendar();
+        scheduleAutoSave();
+    }
+
     function generate30DaysCalendar() {
         let startInput = document.getElementById('startDateInput').value;
         let interval = parseInt(document.getElementById('intervalInput').value) || 1;
@@ -1537,8 +1566,12 @@
 
     window.onload = function() {
         startAutoSaveLoop();
-    loadDataFromCloud();
+        loadDataFromCloud(true);
     };
+
+    window.addEventListener('pageshow', function() {
+        loadDataFromCloud(true);
+    });
 </script>
 </body>
 </html>
