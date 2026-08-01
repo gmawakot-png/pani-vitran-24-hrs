@@ -235,10 +235,10 @@
                     </div>
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">दिन का गैप:</span>
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <button type="button" onclick="changeGapValue(-1)" style="width:22px; height:22px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:13px; font-weight:bold; color:#27ae60; cursor:pointer;">−</button>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" style="width:75px; padding:4px; text-align:center; font-size:13px; font-weight:bold; color:#c0392b; border:1px solid #27ae60; border-radius:4px;" oninput="generate30DaysCalendar()">
-                            <button type="button" onclick="changeGapValue(1)" style="width:22px; height:22px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:13px; font-weight:bold; color:#27ae60; cursor:pointer;">+</button>
+                        <div style="display:flex; align-items:center; gap:3px; border:1px solid #d9f5e6; border-radius:6px; padding:2px 4px; background:#fcfffd; width:fit-content;">
+                            <button type="button" onclick="changeGapValue(-1)" style="width:20px; height:20px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:12px; font-weight:bold; color:#27ae60; cursor:pointer;">−</button>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" style="width:60px; padding:4px; text-align:center; font-size:13px; font-weight:bold; color:#c0392b; border:none; outline:none; background:transparent;" oninput="generate30DaysCalendar()">
+                            <button type="button" onclick="changeGapValue(1)" style="width:20px; height:20px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; font-size:12px; font-weight:bold; color:#27ae60; cursor:pointer;">+</button>
                         </div>
                     </div>
                 </div>
@@ -526,6 +526,14 @@
                 saveDataToCloud();
             }
         }, 1000);
+    }
+
+    function startLiveSyncLoop() {
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                loadDataFromCloud(false);
+            }
+        }, 8000);
     }
 
     function saveLocalBackup(payload) {
@@ -1566,11 +1574,18 @@
 
     window.onload = function() {
         startAutoSaveLoop();
+        startLiveSyncLoop();
         loadDataFromCloud(true);
     };
 
     window.addEventListener('pageshow', function() {
         loadDataFromCloud(true);
+    });
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            loadDataFromCloud(true);
+        }
     });
 </script>
 </body>
