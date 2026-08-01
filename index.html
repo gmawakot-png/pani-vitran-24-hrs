@@ -336,11 +336,11 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
                         <div>
                             <span style="font-size:10px; display:block;">प्रथम व्यक्ति (+मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddFirstMins" value="2" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddFirstMins" value="1" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
                         </div>
                         <div>
                             <span style="font-size:10px; display:block;">आखिरी व्यक्ति (मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddLastMins" value="5" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddLastMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
                         </div>
                     </div>
                 </div>
@@ -350,7 +350,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
                         <div>
                             <span style="font-size:10px; display:block;">प्रथम व्यक्ति (+मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenFirstMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenFirstMins" value="2" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
                         </div>
                         <div>
                             <span style="font-size:10px; display:block;">आखिरी व्यक्ति (मिनट):</span>
@@ -481,8 +481,6 @@
     let debounceTimer;
 
     let currentOrder = "straight";
-    let straightTimeState = {};
-    let reverseTimeState = {};
 
     let initialData = [
         { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
@@ -569,12 +567,11 @@
 
     function applyModeTimeRules() {
         if (initialData.length === 0) return;
-        let settingsPrefix = "odd";
-        if (selectedMode === "oddeven") {
-            settingsPrefix = currentOrder === "reverse" ? "even" : "odd";
-        }
-        let firstMins = parseFloat(document.getElementById(settingsPrefix + "FirstMins").value) || 0;
-        let lastMins = parseFloat(document.getElementById(settingsPrefix + "LastMins").value) || 0;
+        
+        let oddFirst = parseFloat(document.getElementById("oddFirstMins").value) || 0;
+        let oddLast = parseFloat(document.getElementById("oddLastMins").value) || 0;
+        let evenFirst = parseFloat(document.getElementById("evenFirstMins").value) || 0;
+        let evenLast = parseFloat(document.getElementById("evenLastMins").value) || 0;
 
         let totalRows = initialData.length;
 
@@ -584,87 +581,48 @@
 
             if (row.isLocked) return;
 
-            let savedState = (currentOrder === "straight") ? straightTimeState[row.name] : reverseTimeState[row.name];
-            let baseExtra = savedState ? (parseFloat(savedState.extraMinutes) || 0) : 0;
-
-            if (isFirst) {
-                row.extraMinutes = baseExtra + firstMins;
-            } else if (isLast) {
-                row.extraMinutes = baseExtra + lastMins;
-            } else {
-                row.extraMinutes = baseExtra;
+            if (currentOrder === "straight") { 
+                if (isFirst) {
+                    row.extraMinutes = oddFirst; 
+                } else if (isLast) {
+                    row.extraMinutes = oddLast; 
+                }
+            } else { 
+                if (isFirst) {
+                    row.extraMinutes = evenFirst; 
+                } else if (isLast) {
+                    row.extraMinutes = evenLast; 
+                }
             }
         });
 
         renderTable();
-    }
-
-    function saveCurrentOrderTimeState() {
-        let state = {};
-        initialData.forEach(row => {
-            state[row.name] = {
-                extraMinutes: parseFloat(row.extraMinutes) || 0,
-                isLocked: row.isLocked || false
-            };
-        });
-        return state;
-    }
-
-    function restoreOrderTimeState(state) {
-        initialData.forEach(row => {
-            let saved = state[row.name];
-            if (saved) {
-                row.extraMinutes = parseFloat(saved.extraMinutes) || 0;
-                row.isLocked = saved.isLocked || false;
-            } else {
-                row.extraMinutes = 0;
-                row.isLocked = false;
-            }
-        });
     }
 
     function moveRow(index, direction) {
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= initialData.length) return;
 
-        if (currentOrder === "straight") {
-            straightTimeState = saveCurrentOrderTimeState();
-        } else {
-            reverseTimeState = saveCurrentOrderTimeState();
-        }
-
         [initialData[index], initialData[newIndex]] = [initialData[newIndex], initialData[index]];
 
-        if (currentOrder === "straight") {
-            straightTimeState = saveCurrentOrderTimeState();
-        } else {
-            reverseTimeState = saveCurrentOrderTimeState();
-        }
-
         applyModeTimeRules();
+        populateUserDropdown(); // क्रम बदलने पर ड्रॉपडाउन भी अपडेट करें
         renderTable();
         markDataDirty();
     }
 
+    // 🎯 अपडेटेड फंक्शन: टेबल का क्रम उलटने के साथ ही Dropdown को भी अपडेट करता है
     function reverseTable() {
-        if (currentOrder === "straight") {
-            straightTimeState = saveCurrentOrderTimeState();
-        } else {
-            reverseTimeState = saveCurrentOrderTimeState();
-        }
-
         initialData.reverse();
 
         if (currentOrder === "straight") {
             currentOrder = "reverse";
-            restoreOrderTimeState(reverseTimeState);
-            applyModeTimeRules();
         } else {
             currentOrder = "straight";
-            restoreOrderTimeState(straightTimeState);
-            applyModeTimeRules();
         }
 
+        applyModeTimeRules();
+        populateUserDropdown(); // ड्रॉपडाउन लिस्ट का क्रम तुरंत बदल दिया जाएगा
         updateCalculatedValuesOnly();
         markDataDirty();
     }
@@ -774,19 +732,9 @@
                 if(record.currentOrder === "straight" || record.currentOrder === "reverse") {
                     currentOrder = record.currentOrder;
                 }
-                if(record.straightTimeState) straightTimeState = record.straightTimeState;
-                if(record.reverseTimeState) reverseTimeState = record.reverseTimeState;
             }
         } catch(e) {
             console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
-        }
-
-        if (Object.keys(straightTimeState).length === 0 && Object.keys(reverseTimeState).length === 0) {
-            if (currentOrder === "straight") {
-                straightTimeState = saveCurrentOrderTimeState();
-            } else {
-                reverseTimeState = saveCurrentOrderTimeState();
-            }
         }
 
         applyModeTimeRules();
@@ -811,8 +759,6 @@
             hoursToDistribute: document.getElementById('hoursToDistribute').value,
             startTime: document.getElementById('startTime').value,
             currentOrder: currentOrder,
-            straightTimeState: straightTimeState,
-            reverseTimeState: reverseTimeState,
             users: initialData
         };
 
@@ -841,9 +787,9 @@
         generate30DaysCalendar();
     }
 
+    // 🎯 अपडेटेड Dropdown फंक्शन: जो हमेशा टेबल के चालू क्रम के हिसाब से नाम दिखाता है
     function populateUserDropdown() {
         let select = document.getElementById('userSelect');
-        let currentVal = select.value;
         select.innerHTML = '<option value="">-- नाम चुनें --</option>';
         initialData.forEach((row, idx) => {
             let opt = document.createElement('option');
@@ -851,7 +797,8 @@
             opt.text = row.name; 
             select.appendChild(opt);
         });
-        select.value = currentVal;
+        document.getElementById('turnResult').innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
+        document.getElementById('printSlipBtn').style.display = 'none';
     }
 
     function updateCalculatedValuesOnly() {
@@ -1033,6 +980,7 @@
 
     function updateRowFieldInline(idx, field, val) {
         initialData[idx][field] = val;
+        if(field === 'name') populateUserDropdown();
         updateCalculatedValuesOnly();
         markDataDirty();
     }
@@ -1044,18 +992,6 @@
         } else {
             let parsed = parseFloat(cleanVal);
             initialData[idx].extraMinutes = isNaN(parsed) ? 0 : parsed;
-        }
-
-        if (currentOrder === "straight") {
-            straightTimeState[initialData[idx].name] = {
-                extraMinutes: initialData[idx].extraMinutes,
-                isLocked: initialData[idx].isLocked
-            };
-        } else {
-            reverseTimeState[initialData[idx].name] = {
-                extraMinutes: initialData[idx].extraMinutes,
-                isLocked: initialData[idx].isLocked
-            };
         }
 
         updateCalculatedValuesOnly();
@@ -1070,37 +1006,12 @@
         let inputEl = document.querySelector(`.clean-input[data-row-idx="${idx}"][data-field="extraMinutes"]`);
         if (inputEl) inputEl.value = initialData[idx].extraMinutes;
 
-        if (currentOrder === "straight") {
-            straightTimeState[initialData[idx].name] = {
-                extraMinutes: initialData[idx].extraMinutes,
-                isLocked: initialData[idx].isLocked
-            };
-        } else {
-            reverseTimeState[initialData[idx].name] = {
-                extraMinutes: initialData[idx].extraMinutes,
-                isLocked: initialData[idx].isLocked
-            };
-        }
-
         updateCalculatedValuesOnly();
         markDataDirty();
     }
 
     function toggleRowLock(idx) {
         initialData[idx].isLocked = !initialData[idx].isLocked;
-        
-        if (currentOrder === "straight") {
-            straightTimeState[initialData[idx].name] = {
-                extraMinutes: initialData[idx].extraMinutes,
-                isLocked: initialData[idx].isLocked
-            };
-        } else {
-            reverseTimeState[initialData[idx].name] = {
-                extraMinutes: initialData[idx].extraMinutes,
-                isLocked: initialData[idx].isLocked
-            };
-        }
-
         renderTable();
         markDataDirty();
     }
@@ -1121,12 +1032,6 @@
         let insertIndex = position === "above" ? index : index + 1;
         initialData.splice(insertIndex, 0, newRow);
         applyModeTimeRules();
-
-        if (currentOrder === "straight") {
-            straightTimeState = saveCurrentOrderTimeState();
-        } else {
-            reverseTimeState = saveCurrentOrderTimeState();
-        }
 
         calculateAll();
         markDataDirty();
@@ -1191,35 +1096,51 @@
         box.style.display = box.style.display === 'block' ? 'none' : 'block';
     }
 
-    function getUserSlotData(userIndex, includeAdjustments) {
+    function getUserSlotData(userIndex, isOddMode) {
         let rows = [...initialData];
         let totalBigha = rows.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
         let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
         let targetTotalMinutes = hoursToDistribute * 60;
         let startStr = document.getElementById('startTime').value.trim();
 
-        let rowMinutesList = rows.map(row => {
+        let oddFirst = parseFloat(document.getElementById("oddFirstMins").value) || 0;
+        let oddLast = parseFloat(document.getElementById("oddLastMins").value) || 0;
+        let evenFirst = parseFloat(document.getElementById("evenFirstMins").value) || 0;
+        let evenLast = parseFloat(document.getElementById("evenLastMins").value) || 0;
+
+        let totalRows = rows.length;
+
+        let rowMinutesList = rows.map((row, idx) => {
             let pureMinutes = totalBigha > 0 ? ((parseFloat(row.bigha) || 0) * targetTotalMinutes / totalBigha) : 0;
-            let adjustments = includeAdjustments ? (parseFloat(row.extraMinutes) || 0) : 0;
-            return pureMinutes + adjustments;
+            let extra = 0;
+
+            if (isOddMode) {
+                if (idx === 0) extra = oddFirst;
+                else if (idx === totalRows - 1) extra = oddLast;
+                else extra = parseFloat(row.extraMinutes) || 0;
+            } else {
+                let revIdx = totalRows - 1 - idx;
+                if (revIdx === 0) extra = evenFirst;
+                else if (revIdx === totalRows - 1) extra = evenLast;
+                else extra = parseFloat(row.extraMinutes) || 0;
+            }
+
+            return pureMinutes + extra;
         });
 
-        let beforeUserMinutes = rowMinutesList.slice(0, userIndex).reduce((sum, val) => sum + val, 0);
-        let userMinutes = rowMinutesList[userIndex] || 0;
-        let afterUserMinutes = rowMinutesList.slice(userIndex + 1).reduce((sum, val) => sum + val, 0);
+        if (!isOddMode) {
+            rowMinutesList.reverse();
+        }
+
+        let actualIdx = isOddMode ? userIndex : (totalRows - 1 - userIndex);
+
+        let beforeUserMinutes = rowMinutesList.slice(0, actualIdx).reduce((sum, val) => sum + val, 0);
+        let userMinutes = rowMinutesList[actualIdx] || 0;
 
         return {
-            startStr,
-            first: {
-                start: addMinutesToTime(startStr, beforeUserMinutes),
-                end: addMinutesToTime(startStr, beforeUserMinutes + userMinutes),
-                minutes: userMinutes
-            },
-            next: {
-                start: addMinutesToTime(startStr, afterUserMinutes),
-                end: addMinutesToTime(startStr, afterUserMinutes + userMinutes),
-                minutes: userMinutes
-            }
+            start: addMinutesToTime(startStr, beforeUserMinutes),
+            end: addMinutesToTime(startStr, beforeUserMinutes + userMinutes),
+            minutes: userMinutes
         };
     }
 
@@ -1235,12 +1156,15 @@
         }
 
         let user = initialData[selIdx];
-        let slotData = getUserSlotData(selIdx, true);
-        let sTime = slotData.first.start;
-        let eTime = slotData.first.end;
-        let userMinutes = slotData.first.minutes;
-        let nextCycleStartTime = slotData.next.start;
-        let nextCycleEndTime = slotData.next.end;
+        let oddSlot = getUserSlotData(selIdx, true);
+        let evenSlot = getUserSlotData(selIdx, false);
+
+        let sTime = oddSlot.start;
+        let eTime = oddSlot.end;
+        let userMinutes = oddSlot.minutes;
+
+        let nextCycleStartTime = evenSlot.start;
+        let nextCycleEndTime = evenSlot.end;
 
         let hPart = Math.floor(userMinutes / 60);
         let mPart = Math.round(userMinutes % 60);
@@ -1258,24 +1182,23 @@
 
     function getFormattedSlipHTML(userIndex) {
         let user = initialData[userIndex];
-        let totalBigha = initialData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
-        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
-        let targetTotalMinutes = hoursToDistribute * 60;
-        let startStr = document.getElementById('startTime').value.trim();
-
         let oddSlot = getUserSlotData(userIndex, true);
         let evenSlot = getUserSlotData(userIndex, false);
 
-        let sTime = oddSlot.first.start;
-        let eTime = oddSlot.first.end;
-        let userMinutes = oddSlot.first.minutes;
-        let nextCycleStartTime = evenSlot.next.start;
-        let nextCycleEndTime = evenSlot.next.end;
+        let sTime = oddSlot.start;
+        let eTime = oddSlot.end;
+        let userMinutes = oddSlot.minutes;
+
+        let nextCycleStartTime = evenSlot.start;
+        let nextCycleEndTime = evenSlot.end;
+        let evenMinutes = evenSlot.minutes;
+
         let hPart = Math.floor(userMinutes / 60);
         let mPart = Math.round(userMinutes % 60);
-        let evenMinutes = evenSlot.next.minutes;
+
         let evenHPart = Math.floor(evenMinutes / 60);
         let evenMPart = Math.round(evenMinutes % 60);
+
         let duesSlipHtml = (user.amount && user.amount > 0) ? `<div class="slip-field" style="color:#c0392b; font-weight:bold;">बकाया: ₹${user.amount} (भुगतान बाकी है)</div>` : '';
 
         if (selectedMode === "straight") {
