@@ -526,7 +526,6 @@
         btn.style.background = isBusy ? '#f39c12' : '#27ae60';
     }
 
-    // इंस्टेंट (0-सेकंड) में गूगल शीट में ऑटो-सेव करने के लिए फंक्शन
     function markDataDirty() {
         saveDataToCloud();
     }
@@ -659,6 +658,12 @@
         sanitized = normalizeNumericString(sanitized, false);
         target.value = sanitized;
         rememberActiveInput();
+
+        // बीच वाले बॉक्स को अपने आप लॉक (isLocked = true) करें
+        if (idx !== 0 && idx !== initialData.length - 1) {
+            initialData[idx].isLocked = true;
+        }
+
         updateRowExtra(idx, sanitized);
         setTimeout(() => {
             try {
@@ -697,6 +702,7 @@
         markDataDirty();
     }
 
+    /* 1st aur Last box me uper wla formula aur beech wle Locked box ko surakshit rakhna */
     function applyModeTimeRules() {
         if (initialData.length === 0) return;
         let settingsPrefix = "odd";
@@ -712,12 +718,14 @@
             let isFirst = (idx === 0);
             let isLast = (idx === totalRows - 1);
 
-            if (!row.isLocked) {
-                if (isFirst) {
-                    row.extraMinutes = firstMins;
-                } else if (isLast) {
-                    row.extraMinutes = lastMins;
-                } else {
+            // 1st और Last वाले बॉक्स में हमेशा ऊपर वाले फॉर्मूले का समय लागू होगा
+            if (isFirst) {
+                row.extraMinutes = firstMins;
+            } else if (isLast) {
+                row.extraMinutes = lastMins;
+            } else {
+                // बीच वाले बॉक्स: अगर वे अनलॉक्ड हैं तभी 0 होंगे, अगर लॉक्ड (isLocked: true) हैं तो उनका मान सुरक्षित रहेगा!
+                if (!row.isLocked) {
                     row.extraMinutes = 0;
                 }
             }
@@ -730,7 +738,8 @@
         let state = {};
         initialData.forEach(row => {
             state[row.name] = {
-                extraMinutes: Math.max(0, parseFloat(row.extraMinutes) || 0)
+                extraMinutes: Math.max(0, parseFloat(row.extraMinutes) || 0),
+                isLocked: row.isLocked || false
             };
         });
         return state;
@@ -741,8 +750,10 @@
             let saved = state[row.name];
             if (saved) {
                 row.extraMinutes = Math.max(0, parseFloat(saved.extraMinutes) || 0);
+                row.isLocked = saved.isLocked || false;
             } else {
                 row.extraMinutes = 0;
+                row.isLocked = false;
             }
         });
     }
@@ -916,6 +927,7 @@
         calculateAll();
     }
 
+    /* बेहतर गूगल सेव फंक्शन */
     async function saveDataToCloud() {
         let payload = {
             password: adminPassword,
@@ -1139,6 +1151,12 @@
         let current = parseFloat(initialData[idx].extraMinutes);
         if (Number.isNaN(current)) current = 0;
         initialData[idx].extraMinutes = current + delta;
+
+        // बीच वाले बॉक्स को अपने आप लॉक (isLocked = true) करें
+        if (idx !== 0 && idx !== initialData.length - 1) {
+            initialData[idx].isLocked = true;
+        }
+
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
         markDataDirty();
