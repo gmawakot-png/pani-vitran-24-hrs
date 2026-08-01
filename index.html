@@ -209,6 +209,9 @@
             <div class="live-clock-box">
                 🌐 <span id="liveClock">00:00:00 AM</span>
             </div>
+            <div id="saveStatusBox" style="background:#eef5f9; color:#1a5276; border:1px solid #b8daff; padding:6px 10px; border-radius:20px; font-size:12px; font-weight:bold;">
+                🔄 ऑटो-सेव चालू
+            </div>
         </div>
     </div>
 
@@ -444,6 +447,7 @@
     let pendingFocusInfo = null;
     let saveStatusTimer = null;
     let savePending = false;
+    let autoSaveTimer = null;
 
     let initialData = [
         { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
@@ -475,25 +479,42 @@
 
     function debouncedCalculate() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { calculateAll(); }, 300);
+        debounceTimer = setTimeout(() => {
+            calculateAll();
+        }, 300);
     }
 
-    function setSaveStatus(message, isBusy) {
+    function setSaveStatus(message, isBusy, isSuccess = false) {
         let btn = document.getElementById('floatingSaveBtn');
+        let statusBox = document.getElementById('saveStatusBox');
+        if (statusBox) {
+            statusBox.innerText = message;
+            statusBox.style.background = isBusy ? '#fff3cd' : (isSuccess ? '#e8f8f5' : '#eef5f9');
+            statusBox.style.color = isBusy ? '#92400e' : (isSuccess ? '#117a65' : '#1a5276');
+            statusBox.style.borderColor = isBusy ? '#f59e0b' : (isSuccess ? '#a3e4d7' : '#b8daff');
+        }
         if (!btn) return;
         btn.innerText = message;
-        btn.style.background = isBusy ? '#f39c12' : '#27ae60';
+        btn.style.background = isBusy ? '#f39c12' : (isSuccess ? '#27ae60' : '#2980b9');
     }
 
     function markDataDirty() {
         savePending = true;
-        setSaveStatus('⏳ सेव पेंडिंग...', true);
+        setSaveStatus('⏳ ऑटो-सेव पेंडिंग...', true);
         clearTimeout(saveStatusTimer);
         saveStatusTimer = setTimeout(() => {
             if (savePending) {
                 setSaveStatus('💾 गूगल शीट पर सेव करें', false);
             }
         }, 1500);
+    }
+
+    function scheduleAutoSave() {
+        clearTimeout(autoSaveTimer);
+        markDataDirty();
+        autoSaveTimer = setTimeout(() => {
+            saveDataToCloud();
+        }, 1200);
     }
 
     function rememberActiveInput() {
@@ -626,27 +647,32 @@
     function updateNoticeText(val) {
         noticeMessage = val;
         document.getElementById('noticeDisplay').innerText = val.trim() !== "" ? val : "कोई विशेष सूचना उपलब्ध नहीं है।";
+        scheduleAutoSave();
     }
 
     function updateBottomNoticeText(val) {
         bottomNoticeMessage = val;
         document.getElementById('bottomNoticeDisplay').innerText = val.trim() !== "" ? val : "यहाँ महत्वपूर्ण सूचना प्रदर्शित होगी।";
+        scheduleAutoSave();
     }
 
     function toggleTableVisibility() {
         isTablePublic = !isTablePublic;
         renderTable();
+        scheduleAutoSave();
     }
 
     function toggleBottomNoticeVisibility() {
         isBottomNoticePublic = !isBottomNoticePublic;
         renderTable();
+        scheduleAutoSave();
     }
 
     function handleModeChange(val) {
         selectedMode = val;
         applyModeTimeRules();
         calculateAll();
+        scheduleAutoSave();
     }
 
     function applyModeTimeRules() {
@@ -719,6 +745,7 @@
 
         applyModeTimeRules();
         renderTable();
+        scheduleAutoSave();
     }
 
     function reverseTable() {
@@ -866,7 +893,7 @@
     }
 
     async function saveDataToCloud() {
-        if (!savePending && document.getElementById('floatingSaveBtn').innerText.includes('सफल')) return;
+        if (!savePending && document.getElementById('floatingSaveBtn').innerText.includes('✅ सेव हो गया')) return;
         let payload = {
             password: adminPassword,
             notice: noticeMessage,
@@ -893,19 +920,27 @@
             setSaveStatus('सेव हो रहा है...', true);
             let res = await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if(res.ok) {
+            let responseText = '';
+            try {
+                responseText = await res.text();
+            } catch (e) {}
+
+            if (res.ok || responseText) {
                 savePending = false;
-                setSaveStatus('✅ सेव हो गया', false);
+                setSaveStatus('✅ सेव हो गया', false, true);
                 setTimeout(() => {
                     setSaveStatus('💾 गूगल शीट पर सेव करें', false);
-                }, 1200);
+                }, 1800);
             } else {
-                setSaveStatus('❌ सेव में त्रुटि', false);
+                setSaveStatus('❌ सेव नहीं हो सका', false);
+                console.error('Google Sheet save failed:', responseText);
             }
         } catch(e) {
             setSaveStatus('❌ कनेक्शन त्रुटि', false);
+            console.error('Google Sheet save error:', e);
         } finally {
             clearTimeout(saveStatusTimer);
         }
@@ -1070,7 +1105,7 @@
 
     function updateRowField(idx, field, val) {
         initialData[idx][field] = val;
-        markDataDirty();
+        scheduleAutoSave();
         debouncedCalculate();
     }
 
@@ -1084,7 +1119,7 @@
         initialData[idx].extraMinutes = normalizeNumberInput(val);
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
-        markDataDirty();
+        scheduleAutoSave();
         calculateAll();
     }
 
@@ -1094,12 +1129,13 @@
         initialData[idx].extraMinutes = current + delta;
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
-        markDataDirty();
+        scheduleAutoSave();
         calculateAll();
     }
 
     function toggleRowLock(idx) {
         initialData[idx].isLocked = !initialData[idx].isLocked;
+        scheduleAutoSave();
         calculateAll();
     }
 
@@ -1126,6 +1162,7 @@
             reverseTimeState = saveCurrentOrderTimeState();
         }
 
+        scheduleAutoSave();
         calculateAll();
     }
 
@@ -1133,6 +1170,7 @@
         if(confirm("क्या आप वाकई इस पंक्ति को हटाना चाहते हैं?")) {
             initialData.splice(idx, 1);
             applyModeTimeRules();
+            scheduleAutoSave();
             calculateAll();
         }
     }
