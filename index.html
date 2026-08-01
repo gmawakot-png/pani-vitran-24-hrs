@@ -120,7 +120,6 @@
 
         .full-chart-box { display: none; margin-top: 10px; padding: 10px; background: #fcf3cf; border: 1px solid #f1c40f; border-radius: 5px; font-size: 12px; max-height: 250px; overflow-y: auto; }
         
-        /* कॉम्पैक्ट और छोटे बटन्स */
         .admin-action-container { display: flex; align-items: center; justify-content: center; gap: 2px; }
         .btn-move { background: #3498db; color: white; border: none; padding: 2px 5px; font-size: 10px; border-radius: 3px; cursor: pointer; font-weight: bold; }
         .btn-move:disabled { background: #bdc3c7; cursor: not-allowed; }
@@ -129,6 +128,44 @@
         .btn-lock { background: #e67e22; color: white; border: none; padding: 3px 5px; font-size: 10px; border-radius: 3px; cursor: pointer; }
         .btn-arrow { background: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; padding: 2px 4px; font-size: 11px; border-radius: 3px; cursor: pointer; line-height: 1; }
         .btn-arrow:hover { background: #dfe6e9; }
+
+        /* दिन का गैप बॉक्स स्टाइलिंग */
+        .interval-box-container {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #27ae60;
+            border-radius: 4px;
+            background: #fff;
+            overflow: hidden;
+        }
+        .interval-box-container input {
+            width: 45px;
+            border: none;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #c0392b;
+            padding: 4px 2px;
+            outline: none;
+        }
+        .interval-arrows-btn {
+            display: flex;
+            flex-direction: column;
+            background: #ebedef;
+            border-left: 1px solid #27ae60;
+        }
+        .interval-arrows-btn button {
+            background: none;
+            border: none;
+            font-size: 8px;
+            padding: 1px 4px;
+            cursor: pointer;
+            color: #2c3e50;
+            line-height: 1;
+        }
+        .interval-arrows-btn button:hover {
+            background: #d5dbdb;
+        }
 
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -209,9 +246,6 @@
             <div class="live-clock-box">
                 🌐 <span id="liveClock">00:00:00 AM</span>
             </div>
-            <div id="saveStatusBox" style="background:#eef5f9; color:#1a5276; border:1px solid #b8daff; padding:6px 10px; border-radius:20px; font-size:12px; font-weight:bold;">
-                🔄 ऑटो-सेव चालू
-            </div>
         </div>
     </div>
 
@@ -231,19 +265,16 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; gap:8px;">
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">वर्तमान तारीख चुनें:</span>
-                        <div style="display:flex; align-items:center; gap:4px; margin-top:3px;">
-                            <input type="date" id="startDateInput" style="width:130px; padding:4px; font-size:12px; border:1px solid #27ae60; border-radius:4px; font-weight:bold;" onchange="handleDateSelection(this.value)" onfocus="if (typeof this.showPicker === 'function') this.showPicker();">
-                            <button type="button" onclick="const el=document.getElementById('startDateInput'); el.focus(); if (typeof el.showPicker === 'function') el.showPicker();" style="padding:4px 6px; border:1px solid #27ae60; border-radius:4px; background:#f5fbf7; cursor:pointer;">📅</button>
-                        </div>
+                        <input type="date" id="startDateInput" style="width:130px; padding:4px; font-size:12px; border:1px solid #27ae60; border-radius:4px; font-weight:bold;" oninput="generate30DaysCalendar(); markDataDirty();">
                     </div>
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">दिन का गैप:</span>
-                        <div style="display:flex; align-items:center; gap:3px; border:1px solid #d9f5e6; border-radius:6px; padding:2px 4px; background:#fcfffd; width:fit-content;">
-                            <div style="display:flex; flex-direction:column; gap:2px;">
-                                <button type="button" onclick="changeGapValue(1)" style="width:18px; height:18px; border:1px solid #27ae60; border-radius:3px; background:#f5fbf7; font-size:10px; font-weight:bold; color:#27ae60; cursor:pointer; line-height:1;">▲</button>
-                                <button type="button" onclick="changeGapValue(-1)" style="width:18px; height:18px; border:1px solid #27ae60; border-radius:3px; background:#f5fbf7; font-size:10px; font-weight:bold; color:#27ae60; cursor:pointer; line-height:1;">▼</button>
+                        <div class="interval-box-container">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" oninput="generate30DaysCalendar(); markDataDirty();">
+                            <div class="interval-arrows-btn">
+                                <button type="button" onclick="adjustInterval(1)">▲</button>
+                                <button type="button" onclick="adjustInterval(-1)">▼</button>
                             </div>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" style="width:60px; padding:4px; text-align:center; font-size:13px; font-weight:bold; color:#c0392b; border:none; outline:none; background:transparent;" oninput="generate30DaysCalendar()">
                         </div>
                     </div>
                 </div>
@@ -267,7 +298,7 @@
             <div id="noticeDisplay" class="notice-content">कोई विशेष सूचना उपलब्ध नहीं है।</div>
             <div class="admin-only-block" style="margin-top: 8px;">
                 <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:4px;">एडमिन संदेश संपादन (Edit Message):</label>
-                <textarea id="noticeInput" class="notice-textarea" placeholder="यहाँ सभी के लिए सूचना/संदेश लिखें..." oninput="updateNoticeText(this.value)"></textarea>
+                <textarea id="noticeInput" class="notice-textarea" placeholder="यहाँ सभी के लिए सूचना/संदेश लिखें..." oninput="updateNoticeText(this.value); markDataDirty();"></textarea>
             </div>
         </div>
 
@@ -306,11 +337,11 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
                         <div>
                             <span style="font-size:10px; display:block;">प्रथम व्यक्ति (+मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddFirstMins" value="2" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules()">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddFirstMins" value="2" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
                         </div>
                         <div>
                             <span style="font-size:10px; display:block;">आखिरी व्यक्ति (मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddLastMins" value="5" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules()">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddLastMins" value="5" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
                         </div>
                     </div>
                 </div>
@@ -320,11 +351,11 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
                         <div>
                             <span style="font-size:10px; display:block;">प्रथम व्यक्ति (+मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenFirstMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules()">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenFirstMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
                         </div>
                         <div>
                             <span style="font-size:10px; display:block;">आखिरी व्यक्ति (मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenLastMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules()">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenLastMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
                         </div>
                     </div>
                 </div>
@@ -332,22 +363,21 @@
 
             <div class="input-group">
                 <label for="totalPoolHours">कुल उपलब्ध पानी समय (घंटे):</label>
-                <input type="text" id="totalPoolHours" value="24" inputmode="decimal" pattern="[0-9.]*" oninput="debouncedCalculate()">
+                <input type="text" id="totalPoolHours" value="24" inputmode="decimal" pattern="[0-9.]*" oninput="debouncedCalculate(); markDataDirty();">
             </div>
             <div class="input-group">
                 <label for="hoursToDistribute">कुल घंटे बाँटने हैं:</label>
-                <input type="text" id="hoursToDistribute" value="23" inputmode="decimal" pattern="[0-9.]*" oninput="debouncedCalculate()">
+                <input type="text" id="hoursToDistribute" value="23" inputmode="decimal" pattern="[0-9.]*" oninput="debouncedCalculate(); markDataDirty();">
             </div>
             <div class="input-group">
                 <label for="startTime">शुरुआती समय (Start):</label>
-                <input type="text" id="startTime" value="07:00:00 AM" oninput="debouncedCalculate()">
+                <input type="text" id="startTime" value="07:00:00 AM" oninput="debouncedCalculate(); markDataDirty();">
             </div>
 
             <button class="btn-action" id="toggleTableVisibilityBtn" style="background:#e74c3c; margin-top:8px; margin-bottom:5px;" onclick="toggleTableVisibility()">🔒 मेन सारणी (Table) पब्लिक रखें: बंद</button>
             <button class="btn-action" id="toggleBottomNoticeBtn" style="background:#27ae60; margin-bottom:5px;" onclick="toggleBottomNoticeVisibility()">🔓 बॉटम संदेश बॉक्स (Public): चालू</button>
             <button class="btn-action" style="background:#e67e22; margin-bottom:5px;" onclick="reverseTable()">🔄 पूरी सारणी का क्रम उल्टा करें</button>
             <button class="btn-action" style="background:#27ae60;" id="saveBtnMain" onclick="saveDataToCloud()">☁️ गूगल शीट में सेव करें</button>
-            <button class="btn-action" style="background:#34495e;" onclick="loadDataFromCloud(true)">🔄 Cloud से फिर से लोड करें</button>
             <button class="btn-action" style="background:#8e44ad;" onclick="openChangePassModal()">🔑 पासवर्ड बदलें</button>
             
             <button class="btn-print-all" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें (18 प्रति पेज)</button>
@@ -371,7 +401,7 @@
                     <th class="red-txt">से (शुरुआत)</th>
                     <th class="red-txt">तक (समाप्ति)</th>
                     <th style="width: 65px;">धनराशी</th>
-                    <th style="width: 90px;">रू० प्राप्त तारीख (DD-MM-YY)</th>
+                    <th style="width: 75px;">रू० प्राप्त तारीख</th>
                     <th style="width: 55px;">पर्ची</th>
                     <th id="actionHeader" style="display:none; width: 110px;">क्रम/नाम</th>
                     <th id="deleteHeader" style="display:none; width: 50px;">हटाएं</th>
@@ -399,7 +429,7 @@
         
         <div class="admin-only-block" style="margin-top: 10px;">
             <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:4px; color:#1b4f72;">⚙️ एडमिन बॉटम संदेश एडिट करें (Bottom Notice Edit):</label>
-            <textarea id="bottomNoticeInput" class="notice-textarea" style="border-color:#3498db;" placeholder="यहाँ पेज के सबसे नीचे दिखाने वाली सूचना लिखें..." oninput="updateBottomNoticeText(this.value)"></textarea>
+            <textarea id="bottomNoticeInput" class="notice-textarea" style="border-color:#3498db;" placeholder="यहाँ पेज के सबसे नीचे दिखाने वाली सूचना लिखें..." oninput="updateBottomNoticeText(this.value); markDataDirty();"></textarea>
         </div>
     </div>
 
@@ -442,9 +472,7 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2RvuJSH6o_B-BqCunk5MQtYj7tZxw1lsy5vsTWntoCZa1WSrLtcN6YwDEh0x0TnuJXg/exec";
 
     let isAdmin = false;
-    const LOCAL_BACKUP_KEY = "paniVitranLocalBackup";
-    const LOCAL_PASSWORD_KEY = "paniVitranAdminPassword";
-    let adminPassword = localStorage.getItem(LOCAL_PASSWORD_KEY) || "2050";
+    let adminPassword = "2050"; 
     let noticeMessage = "";
     let bottomNoticeMessage = ""; 
     let isTablePublic = false; 
@@ -457,33 +485,26 @@
     let straightTimeState = {};
     let reverseTimeState = {};
     let pendingFocusInfo = null;
-    let saveStatusTimer = null;
-    let savePending = false;
-    let autoSaveTimer = null;
-    let saveInProgress = false;
-    let saveIntervalTimer = null;
-    let lastSyncedAt = null;
-    let tableRenderTimer = null;
 
     let initialData = [
-        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्री राजेश कुमार जी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्री कांता डबराल जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती बसंती देवी", bigha: 1, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्री विपिन खंतवाल", bigha: 3, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती उषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती अंजू देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "गणेश", bigha: 3.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती गीता देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती मनीषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्री राजू बिष्ट", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती मनीषा देवी २", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती पिंकी देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्री मस्तान सिंह जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती पुनीता देवी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false, manualExtra: false },
-        { name: "श्रीमती जस्सी देवी", bigha: 3, amount: 100, date: "25-07", extraMinutes: 0, isLocked: false, manualExtra: false }
+        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री राजेश कुमार जी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री कांता डबराल जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती बसंती देवी", bigha: 1, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री विपिन खंतवाल", bigha: 3, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती उषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती अंजू देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "गणेश", bigha: 3.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती गीता देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती मनीषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री राजू बिष्ट", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती मनीषा देवी २", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती पिंकी देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्री मस्तान सिंह जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती पुनीता देवी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
+        { name: "श्रीमती जस्सी देवी", bigha: 3, amount: 100, date: "25-07", extraMinutes: 0, isLocked: false }
     ];
 
     function updateLiveClock() {
@@ -495,172 +516,29 @@
 
     function debouncedCalculate() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            calculateAll();
-        }, 300);
+        debounceTimer = setTimeout(() => { calculateAll(); }, 300);
     }
 
-    function setSaveStatus(message, isBusy, isSuccess = false) {
+    function setSaveStatus(message, isBusy) {
         let btn = document.getElementById('floatingSaveBtn');
-        let statusBox = document.getElementById('saveStatusBox');
-        let displayMessage = message || (isBusy ? '⏳ सेव हो रहा है' : (isSuccess ? '✅ सेव हो गया' : '🔄 ऑटो-सेव चालू'));
-        let stateKey = isBusy ? 'busy' : (isSuccess ? 'success' : 'idle');
-
-        if (statusBox && statusBox.dataset.state === stateKey && statusBox.innerText === displayMessage) {
-            return;
-        }
-
-        if (statusBox) {
-            statusBox.dataset.state = stateKey;
-            statusBox.innerText = displayMessage;
-            statusBox.style.background = isBusy ? '#fff3cd' : (isSuccess ? '#e8f8f5' : '#eef5f9');
-            statusBox.style.color = isBusy ? '#92400e' : (isSuccess ? '#117a65' : '#1a5276');
-            statusBox.style.borderColor = isBusy ? '#f59e0b' : (isSuccess ? '#a3e4d7' : '#b8daff');
-        }
         if (!btn) return;
-        btn.innerText = displayMessage;
-        btn.style.background = isBusy ? '#f39c12' : (isSuccess ? '#27ae60' : '#2980b9');
+        btn.innerText = message;
+        btn.style.background = isBusy ? '#f39c12' : '#27ae60';
     }
 
+    // इंस्टेंट (0-सेकंड) में गूगल शीट में ऑटो-सेव करने के लिए फंक्शन
     function markDataDirty() {
-        savePending = true;
-        clearTimeout(saveStatusTimer);
-        setSaveStatus('🔄 ऑटो-सेव चालू', false);
+        saveDataToCloud();
     }
 
-    function startAutoSaveLoop() {
-        return;
-    }
-
-    function startLiveSyncLoop() {
-        setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                loadDataFromCloud(false);
-            }
-        }, 20000);
-    }
-
-    function saveLocalBackup(payload) {
-        try {
-            localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({
-                ...payload,
-                savedAt: new Date().toString()
-            }));
-        } catch (e) {
-            console.warn('लोकल बैकअप नहीं हो सका:', e);
-        }
-    }
-
-    function downloadBackupFile() {
-        const payload = buildPayload();
-        const dataStr = JSON.stringify(payload, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `pani-vitran-backup-${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        setSaveStatus('📥 बैकअप डाउनलोड हो गया', false);
-    }
-
-    function buildPayload() {
-        return {
-            password: adminPassword,
-            notice: noticeMessage,
-            bottomNotice: bottomNoticeMessage,
-            isTablePublic: isTablePublic,
-            isBottomNoticePublic: isBottomNoticePublic,
-            selectedMode: selectedMode,
-            oddFirstMins: document.getElementById('oddFirstMins').value,
-            oddLastMins: document.getElementById('oddLastMins').value,
-            evenFirstMins: document.getElementById('evenFirstMins').value,
-            evenLastMins: document.getElementById('evenLastMins').value,
-            startDate: document.getElementById('startDateInput').value,
-            gapDays: document.getElementById('intervalInput').value,
-            totalPoolHours: document.getElementById('totalPoolHours').value,
-            hoursToDistribute: document.getElementById('hoursToDistribute').value,
-            startTime: document.getElementById('startTime').value,
-            currentOrder: currentOrder,
-            straightTimeState: straightTimeState,
-            reverseTimeState: reverseTimeState,
-            users: initialData
-        };
-    }
-
-    function saveAdminPasswordToStorage(password) {
-        try {
-            localStorage.setItem(LOCAL_PASSWORD_KEY, password);
-        } catch (e) {
-            console.warn('पासवर्ड लोकल स्टोरेज में नहीं बचा:', e);
-        }
-    }
-
-    async function postToGoogleScript(payload) {
-        const normalOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            cache: 'no-store',
-            keepalive: true,
-            redirect: 'follow'
-        };
-
-        try {
-            const res = await fetch(GOOGLE_SCRIPT_URL, normalOptions);
-            let responseText = '';
-            try {
-                responseText = await res.text();
-            } catch (e) {}
-
-            if (res.ok) {
-                return { ok: true, responseText };
-            }
-        } catch (e) {
-            console.warn('सीधा Google Sheet POST असफल:', e);
-        }
-
-        try {
-            if (navigator.sendBeacon) {
-                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-                const beaconOk = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
-                if (beaconOk) {
-                    return { ok: true, responseText: '', fallback: true };
-                }
-            }
-        } catch (e) {
-            console.warn('sendBeacon fallback भी असफल:', e);
-        }
-
-        try {
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                mode: 'no-cors',
-                cache: 'no-store'
-            });
-            return { ok: true, responseText: '', fallback: true };
-        } catch (e) {
-            console.warn('no-cors fallback भी असफल:', e);
-            return { ok: false, responseText: '' };
-        }
-    }
-
-    function loadLocalBackup() {
-        try {
-            const raw = localStorage.getItem(LOCAL_BACKUP_KEY);
-            return raw ? JSON.parse(raw) : null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    function scheduleAutoSave() {
-        clearTimeout(autoSaveTimer);
-        savePending = true;
-        setSaveStatus('📝 बदलाव दर्ज हुए — “गूगल शीट में सेव करें” पर दबाएँ', false);
+    function adjustInterval(delta) {
+        let input = document.getElementById('intervalInput');
+        let val = parseInt(input.value) || 1;
+        val += delta;
+        if(val < 1) val = 1;
+        input.value = val;
+        generate30DaysCalendar();
+        markDataDirty();
     }
 
     function rememberActiveInput() {
@@ -707,67 +585,6 @@
             value = value.replace(/^0+/, '');
         }
         return value;
-    }
-
-    function refreshSummaryCards() {
-        const totalBigha = initialData.reduce((sum, row) => sum + (parseFloat(row.bigha) || 0), 0);
-        const hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
-        const targetTotalMinutes = hoursToDistribute * 60;
-        let totalMinutesCalc = 0;
-        let totalAmountVal = 0;
-        let totalExtraMinutes = 0;
-
-        initialData.forEach((row) => {
-            const bigha = parseFloat(row.bigha) || 0;
-            const amount = parseFloat(row.amount) || 0;
-            const extra = parseFloat(row.extraMinutes) || 0;
-            const pureMinutes = totalBigha > 0 ? (bigha * targetTotalMinutes / totalBigha) : 0;
-            const minutes = pureMinutes + extra;
-
-            totalAmountVal += amount;
-            totalExtraMinutes += extra;
-            totalMinutesCalc += minutes;
-        });
-
-        document.getElementById('totalMinFoot').innerText = Math.round(totalMinutesCalc);
-        let totalHours = Math.floor(totalMinutesCalc / 60);
-        let totalMins = Math.round(totalMinutesCalc % 60);
-        document.getElementById('totalDurationFoot').innerText = totalHours + " घंटे " + totalMins + " मिनट";
-        document.getElementById('totalExtraFoot').innerText = Math.round(totalExtraMinutes);
-        document.getElementById('totalAmountFoot').innerText = totalAmountVal;
-        document.getElementById('sumBigha').innerText = totalBigha;
-
-        let distH = Math.floor(targetTotalMinutes / 60);
-        let distM = Math.round(targetTotalMinutes % 60);
-        document.getElementById('displayDistributedHM').innerText = `${distH} घंटे ${distM} मिनट`;
-
-        let totalDistributionMinutes = targetTotalMinutes;
-        initialData.forEach((curr) => {
-            totalDistributionMinutes += (curr.extraMinutes || 0);
-        });
-
-        let totalDistH = Math.floor(totalDistributionMinutes / 60);
-        let totalDistM = Math.round(totalDistributionMinutes % 60);
-        document.getElementById('displayTotalDistributionHM').innerText = `${totalDistH} घंटे ${totalDistM} मिनट`;
-
-        let poolTotalMins = (parseFloat(document.getElementById('totalPoolHours').value) || 24) * 60;
-        let remMins = Math.max(0, poolTotalMins - totalDistributionMinutes);
-        let remHPart = Math.floor(remMins / 60);
-        let remMPart = Math.round(remMins % 60);
-
-        let remText = "";
-        if(remHPart > 0 && remMPart > 0) remText = `${remHPart} घंटे ${remMPart} मिनट`;
-        else if(remHPart > 0) remText = `${remHPart} घंटे`;
-        else remText = `${remMPart} मिनट`;
-
-        document.getElementById('displayRemainingHours').innerText = remText;
-    }
-
-    function requestTableRender(delay = 180) {
-        clearTimeout(tableRenderTimer);
-        tableRenderTimer = setTimeout(() => {
-            renderTable();
-        }, delay);
     }
 
     function handleNumericInput(event, idx, field, value) {
@@ -818,11 +635,7 @@
         if (field === 'extraMinutes') {
             updateRowExtra(idx, sanitized);
         } else {
-            updateRowField(idx, field, sanitized, field === 'bigha');
-        }
-
-        if (field === 'amount' || field === 'bigha' || field === 'extraMinutes') {
-            refreshSummaryCards();
+            updateRowField(idx, field, sanitized);
         }
 
         setTimeout(() => {
@@ -847,7 +660,6 @@
         target.value = sanitized;
         rememberActiveInput();
         updateRowExtra(idx, sanitized);
-        refreshSummaryCards();
         setTimeout(() => {
             try {
                 let pos = target.value.length;
@@ -859,32 +671,30 @@
     function updateNoticeText(val) {
         noticeMessage = val;
         document.getElementById('noticeDisplay').innerText = val.trim() !== "" ? val : "कोई विशेष सूचना उपलब्ध नहीं है।";
-        scheduleAutoSave();
     }
 
     function updateBottomNoticeText(val) {
         bottomNoticeMessage = val;
         document.getElementById('bottomNoticeDisplay').innerText = val.trim() !== "" ? val : "यहाँ महत्वपूर्ण सूचना प्रदर्शित होगी।";
-        scheduleAutoSave();
     }
 
     function toggleTableVisibility() {
         isTablePublic = !isTablePublic;
         renderTable();
-        scheduleAutoSave();
+        markDataDirty();
     }
 
     function toggleBottomNoticeVisibility() {
         isBottomNoticePublic = !isBottomNoticePublic;
         renderTable();
-        scheduleAutoSave();
+        markDataDirty();
     }
 
     function handleModeChange(val) {
         selectedMode = val;
         applyModeTimeRules();
         calculateAll();
-        scheduleAutoSave();
+        markDataDirty();
     }
 
     function applyModeTimeRules() {
@@ -902,7 +712,7 @@
             let isFirst = (idx === 0);
             let isLast = (idx === totalRows - 1);
 
-            if (!row.isLocked && !row.manualExtra) {
+            if (!row.isLocked) {
                 if (isFirst) {
                     row.extraMinutes = firstMins;
                 } else if (isLast) {
@@ -957,7 +767,7 @@
 
         applyModeTimeRules();
         renderTable();
-        scheduleAutoSave();
+        markDataDirty();
     }
 
     function reverseTable() {
@@ -979,6 +789,7 @@
         }
 
         calculateAll();
+        markDataDirty();
     }
 
     function togglePassVisibility(inputId) {
@@ -1029,11 +840,9 @@
         if(oldP === adminPassword) {
             if(newP && newP.trim() !== "") {
                 adminPassword = newP.trim();
-                saveAdminPasswordToStorage(adminPassword);
                 closeChangePassModal();
-                setSaveStatus('🔐 नया पासवर्ड सेट हो गया', false);
-                scheduleAutoSave();
-                alert("पासवर्ड बदल दिया गया! अब यह नया पासवर्ड काम करेगा।");
+                alert("पासवर्ड बदल दिया गया! डेटा सेव हो रहा है...");
+                markDataDirty();
             } else {
                 alert("कृपया नया पासवर्ड दर्ज करें!");
             }
@@ -1042,101 +851,57 @@
         }
     }
 
-    function applyLoadedPayload(payload) {
-        if (!payload) return false;
-
-        const hasRemoteUsers = Array.isArray(payload.users) && payload.users.length > 0;
-        const hasRemoteSettings = payload.password !== undefined || payload.notice !== undefined || payload.bottomNotice !== undefined || payload.isTablePublic !== undefined || payload.isBottomNoticePublic !== undefined || payload.selectedMode !== undefined || payload.oddFirstMins !== undefined || payload.oddLastMins !== undefined || payload.evenFirstMins !== undefined || payload.evenLastMins !== undefined || payload.startDate !== undefined || payload.gapDays !== undefined || payload.totalPoolHours !== undefined || payload.hoursToDistribute !== undefined || payload.startTime !== undefined || payload.currentOrder !== undefined || payload.straightTimeState !== undefined || payload.reverseTimeState !== undefined;
-
-        if (hasRemoteUsers) {
-            initialData = payload.users.map(u => ({
-                ...u,
-                extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
-                isLocked: u.isLocked !== undefined ? u.isLocked : false,
-                manualExtra: u.manualExtra !== undefined ? u.manualExtra : false
-            }));
-        }
-
-        const storedPassword = localStorage.getItem(LOCAL_PASSWORD_KEY);
-        if (storedPassword) {
-            adminPassword = storedPassword;
-        } else if (payload.password) {
-            adminPassword = payload.password;
-            saveAdminPasswordToStorage(adminPassword);
-        }
-
-        if (payload.notice !== undefined) {
-            noticeMessage = payload.notice;
-            const noticeInput = document.getElementById('noticeInput');
-            if (noticeInput) noticeInput.value = noticeMessage;
-            updateNoticeText(noticeMessage);
-        }
-        if (payload.bottomNotice !== undefined) {
-            bottomNoticeMessage = payload.bottomNotice;
-            const bottomInput = document.getElementById('bottomNoticeInput');
-            if (bottomInput) bottomInput.value = bottomNoticeMessage;
-            updateBottomNoticeText(bottomNoticeMessage);
-        }
-        if (payload.isTablePublic !== undefined) isTablePublic = payload.isTablePublic;
-        if (payload.isBottomNoticePublic !== undefined) isBottomNoticePublic = payload.isBottomNoticePublic;
-        if (payload.selectedMode) {
-            selectedMode = payload.selectedMode;
-            let radios = document.getElementsByName('waterDistributionMode');
-            radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
-        }
-        if (payload.oddFirstMins !== undefined) document.getElementById('oddFirstMins').value = payload.oddFirstMins;
-        if (payload.oddLastMins !== undefined) document.getElementById('oddLastMins').value = payload.oddLastMins;
-        if (payload.evenFirstMins !== undefined) document.getElementById('evenFirstMins').value = payload.evenFirstMins;
-        if (payload.evenLastMins !== undefined) document.getElementById('evenLastMins').value = payload.evenLastMins;
-
-        if (payload.startDate !== undefined) document.getElementById('startDateInput').value = payload.startDate;
-        if (payload.gapDays !== undefined) document.getElementById('intervalInput').value = payload.gapDays;
-        if (payload.totalPoolHours !== undefined) document.getElementById('totalPoolHours').value = payload.totalPoolHours;
-        if (payload.hoursToDistribute !== undefined) document.getElementById('hoursToDistribute').value = payload.hoursToDistribute;
-        if (payload.startTime !== undefined) document.getElementById('startTime').value = payload.startTime;
-
-        if (payload.currentOrder === "straight" || payload.currentOrder === "reverse") {
-            currentOrder = payload.currentOrder;
-        }
-        if (payload.straightTimeState) straightTimeState = payload.straightTimeState;
-        if (payload.reverseTimeState) reverseTimeState = payload.reverseTimeState;
-
-        return hasRemoteUsers || hasRemoteSettings;
-    }
-
-    async function loadDataFromCloud(forceRefresh = false, attempt = 0) {
-        const maxAttempts = forceRefresh ? 3 : 2;
-        let loadedFromCloud = false;
-
+    async function loadDataFromCloud() {
         try {
-            const cacheBuster = `?t=${Date.now()}${forceRefresh ? '&force=1' : ''}`;
-            let res = await fetch(GOOGLE_SCRIPT_URL + cacheBuster, {
-                method: 'GET',
-                cache: 'no-store',
-                headers: { 'Cache-Control': 'no-cache' }
-            });
+            let res = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
             if (!res.ok) throw new Error("डेटा लोड करने में विफल");
             let record = await res.json();
-            if (record) {
-                loadedFromCloud = applyLoadedPayload(record);
-                const remoteSavedAt = record.savedAt || record.updatedAt || null;
-                if (loadedFromCloud && remoteSavedAt) {
-                    lastSyncedAt = remoteSavedAt;
+            
+            if(record) {
+                if(record.users && record.users.length > 0) {
+                    initialData = record.users.map(u => ({
+                        ...u,
+                        extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
+                        isLocked: u.isLocked !== undefined ? u.isLocked : false
+                    }));
                 }
+                if(record.password) adminPassword = record.password;
+                if(record.notice) {
+                    noticeMessage = record.notice;
+                    document.getElementById('noticeInput').value = noticeMessage;
+                    updateNoticeText(noticeMessage);
+                }
+                if(record.bottomNotice) {
+                    bottomNoticeMessage = record.bottomNotice;
+                    document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
+                    updateBottomNoticeText(bottomNoticeMessage);
+                }
+                if(record.isTablePublic !== undefined) isTablePublic = record.isTablePublic;
+                if(record.isBottomNoticePublic !== undefined) isBottomNoticePublic = record.isBottomNoticePublic;
+                if(record.selectedMode) {
+                    selectedMode = record.selectedMode;
+                    let radios = document.getElementsByName('waterDistributionMode');
+                    radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
+                }
+                if(record.oddFirstMins !== undefined) document.getElementById('oddFirstMins').value = record.oddFirstMins;
+                if(record.oddLastMins !== undefined) document.getElementById('oddLastMins').value = record.oddLastMins;
+                if(record.evenFirstMins !== undefined) document.getElementById('evenFirstMins').value = record.evenFirstMins;
+                if(record.evenLastMins !== undefined) document.getElementById('evenLastMins').value = record.evenLastMins;
+
+                if(record.startDate) document.getElementById('startDateInput').value = record.startDate;
+                if(record.gapDays) document.getElementById('intervalInput').value = record.gapDays;
+                if(record.totalPoolHours !== undefined) document.getElementById('totalPoolHours').value = record.totalPoolHours;
+                if(record.hoursToDistribute !== undefined) document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
+                if(record.startTime !== undefined) document.getElementById('startTime').value = record.startTime;
+
+                if(record.currentOrder === "straight" || record.currentOrder === "reverse") {
+                    currentOrder = record.currentOrder;
+                }
+                if(record.straightTimeState) straightTimeState = record.straightTimeState;
+                if(record.reverseTimeState) reverseTimeState = record.reverseTimeState;
             }
         } catch(e) {
             console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
-            if (attempt < maxAttempts - 1) {
-                await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-                return loadDataFromCloud(forceRefresh, attempt + 1);
-            }
-        }
-
-        if (!loadedFromCloud) {
-            const backup = loadLocalBackup();
-            if (backup) {
-                applyLoadedPayload(backup);
-            }
         }
 
         if (Object.keys(straightTimeState).length === 0 && Object.keys(reverseTimeState).length === 0) {
@@ -1152,40 +917,44 @@
     }
 
     async function saveDataToCloud() {
-        if (saveInProgress) return;
-        if (!savePending && document.getElementById('floatingSaveBtn').innerText.includes('✅')) return;
-
-        saveInProgress = true;
-        let payload = buildPayload();
-        saveLocalBackup(payload);
+        let payload = {
+            password: adminPassword,
+            notice: noticeMessage,
+            bottomNotice: bottomNoticeMessage,
+            isTablePublic: isTablePublic,
+            isBottomNoticePublic: isBottomNoticePublic,
+            selectedMode: selectedMode,
+            oddFirstMins: document.getElementById('oddFirstMins').value,
+            oddLastMins: document.getElementById('oddLastMins').value,
+            evenFirstMins: document.getElementById('evenFirstMins').value,
+            evenLastMins: document.getElementById('evenLastMins').value,
+            startDate: document.getElementById('startDateInput').value,
+            gapDays: document.getElementById('intervalInput').value,
+            totalPoolHours: document.getElementById('totalPoolHours').value,
+            hoursToDistribute: document.getElementById('hoursToDistribute').value,
+            startTime: document.getElementById('startTime').value,
+            currentOrder: currentOrder,
+            straightTimeState: straightTimeState,
+            reverseTimeState: reverseTimeState,
+            users: initialData
+        };
 
         try {
-            setSaveStatus('सेव हो रहा है...', true);
-            const result = await postToGoogleScript(payload);
-
-            if (result.ok) {
-                savePending = false;
-                setSaveStatus('✅ Google Sheet पर सेव हो गया', false, true);
+            setSaveStatus('⚡ अपडेट हो रहा है...', true);
+            let res = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                setSaveStatus('✅ गूगल शीट में अपडेटेड', false);
                 setTimeout(() => {
                     setSaveStatus('💾 गूगल शीट पर सेव करें', false);
-                }, 1200);
-                applyLoadedPayload(payload);
-                calculateAll();
-                setTimeout(() => {
-                    loadDataFromCloud(true);
-                }, 1500);
+                }, 1000);
             } else {
-                savePending = false;
-                setSaveStatus('⚠️ स्थानीय रूप से सेव हो गया', false);
-                console.error('Google Sheet save failed:', result.responseText);
+                setSaveStatus('❌ सेव में त्रुटि', false);
             }
         } catch(e) {
-            savePending = false;
-            setSaveStatus('⚠️ स्थानीय रूप से सेव हो गया', false);
-            console.error('Google Sheet save error:', e);
-        } finally {
-            saveInProgress = false;
-            clearTimeout(saveStatusTimer);
+            setSaveStatus('❌ कनेक्शन त्रुटि', false);
         }
     }
 
@@ -1287,7 +1056,7 @@
                 <td class="red-txt">${startTimeFormatted}</td>
                 <td class="red-txt">${endTimeFormatted}</td>
                 <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="clean-input" data-row-idx="${idx}" data-field="amount" style="width:60px; text-align:center;" value="${row.amount || ''}" placeholder="0" oninput="handleNumericInput(event, ${idx}, 'amount', this.value);" ${!isAdmin ? 'readonly' : ''}></td>
-                <td><input type="text" class="clean-input" data-row-idx="${idx}" data-field="date" style="width:85px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM-YY" maxlength="10" oninput="rememberActiveInput(); updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" class="clean-input" data-row-idx="${idx}" data-field="date" style="width:75px; text-align:center;" value="${row.date || ''}" placeholder="DD-MM" oninput="rememberActiveInput(); updateRowField(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
                 <td>
                     <button class="btn-row-print" onclick="printRowSlip(${idx})">🖨️ पर्ची</button>
                 </td>
@@ -1346,24 +1115,10 @@
         setTimeout(restoreFocusAfterRender, 0);
     }
 
-    function updateAmountSummary() {
-        let totalAmountVal = initialData.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
-        let totalAmountEl = document.getElementById('totalAmountFoot');
-        if (totalAmountEl) {
-            totalAmountEl.innerText = totalAmountVal;
-        }
-    }
-
-    function updateRowField(idx, field, val, shouldRecalculate = false) {
+    function updateRowField(idx, field, val) {
         initialData[idx][field] = val;
-        if (field === 'amount') {
-            updateAmountSummary();
-            refreshSummaryCards();
-            return;
-        }
-        if (shouldRecalculate) {
-            refreshSummaryCards();
-        }
+        markDataDirty();
+        debouncedCalculate();
     }
 
     function normalizeNumberInput(value) {
@@ -1374,27 +1129,26 @@
 
     function updateRowExtra(idx, val) {
         initialData[idx].extraMinutes = normalizeNumberInput(val);
-        initialData[idx].manualExtra = true;
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
-        refreshSummaryCards();
+        markDataDirty();
+        calculateAll();
     }
 
     function adjustRowExtra(idx, delta) {
         let current = parseFloat(initialData[idx].extraMinutes);
         if (Number.isNaN(current)) current = 0;
         initialData[idx].extraMinutes = current + delta;
-        initialData[idx].manualExtra = true;
         if (currentOrder === "straight") straightTimeState = saveCurrentOrderTimeState();
         else reverseTimeState = saveCurrentOrderTimeState();
-        refreshSummaryCards();
-        renderTable();
+        markDataDirty();
+        calculateAll();
     }
 
     function toggleRowLock(idx) {
         initialData[idx].isLocked = !initialData[idx].isLocked;
-        refreshSummaryCards();
-        renderTable();
+        calculateAll();
+        markDataDirty();
     }
 
     function addRowAt(index, position) {
@@ -1420,16 +1174,16 @@
             reverseTimeState = saveCurrentOrderTimeState();
         }
 
-        scheduleAutoSave();
         calculateAll();
+        markDataDirty();
     }
 
     function deleteRow(idx) {
         if(confirm("क्या आप वाकई इस पंक्ति को हटाना चाहते हैं?")) {
             initialData.splice(idx, 1);
             applyModeTimeRules();
-            scheduleAutoSave();
             calculateAll();
+            markDataDirty();
         }
     }
 
@@ -1458,24 +1212,6 @@
         return `${pad(newHrs12)}:${pad(newMins)}:${pad(newSecs)} ${newMod}`;
     }
 
-    function handleDateSelection(value) {
-        let input = document.getElementById('startDateInput');
-        if (!input) return;
-        input.value = value || '';
-        generate30DaysCalendar();
-        scheduleAutoSave();
-    }
-
-    function changeGapValue(delta) {
-        let input = document.getElementById('intervalInput');
-        if (!input) return;
-        let current = parseInt(input.value) || 1;
-        let nextValue = Math.max(1, current + delta);
-        input.value = nextValue;
-        generate30DaysCalendar();
-        scheduleAutoSave();
-    }
-
     function generate30DaysCalendar() {
         let startInput = document.getElementById('startDateInput').value;
         let interval = parseInt(document.getElementById('intervalInput').value) || 1;
@@ -1484,8 +1220,7 @@
         waterDates = [];
 
         if(!startInput) return;
-        let currentDate = new Date(`${startInput}T00:00:00`);
-        if (isNaN(currentDate.getTime())) return;
+        let currentDate = new Date(startInput);
 
         for(let i=0; i<30; i++) {
             let dStr = currentDate.toLocaleDateString('hi-IN', { day: '2-digit', month: 'long' });
@@ -1668,19 +1403,8 @@
     }
 
     window.onload = function() {
-        startLiveSyncLoop();
-        loadDataFromCloud(true);
+        loadDataFromCloud();
     };
-
-    window.addEventListener('pageshow', function() {
-        loadDataFromCloud(true);
-    });
-
-    document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible') {
-            loadDataFromCloud(true);
-        }
-    });
 </script>
 </body>
 </html>
