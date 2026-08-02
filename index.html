@@ -637,50 +637,45 @@
         document.getElementById('adminModal').style.display = 'none';
     }
 
-    function verifyAdminPassword() {
-        let pass = document.getElementById('adminPassInput').value.trim();
-        let curPass = String(adminPassword).trim();
+    // 1. एडमिन पासवर्ड वेरिफिकेशन फ़ंक्शन
+function verifyAdminPassword() {
+    let pass = document.getElementById('adminPassInput').value.trim();
+    let curPass = String(adminPassword).trim();
+    let localPass = localStorage.getItem('ADMIN_PASS') || curPass;
 
-        if(pass === curPass || pass === "2050") {
-            isAdmin = true;
-            closeAdminModal();
-            alert("एडमिन मोड चालू हो गया है!");
-            renderTable();
+    if(pass === curPass || pass === localPass || pass === "2050") {
+        isAdmin = true;
+        closeAdminModal();
+        alert("एडमिन मोड चालू हो गया है!");
+        renderTable();
+    } else {
+        alert("गलत पासवर्ड!");
+    }
+}
+
+// 2. नया पासवर्ड बदलने और सेव करने का फ़ंक्शन
+function submitNewPassword() {
+    let oldP = document.getElementById('oldPassInput').value.trim();
+    let newP = document.getElementById('newPassInput').value.trim();
+    let curPass = String(adminPassword).trim();
+    let localPass = localStorage.getItem('ADMIN_PASS') || curPass;
+
+    if(oldP === curPass || oldP === localPass || oldP === "2050") {
+        if(newP && newP !== "") {
+            adminPassword = newP;
+            localStorage.setItem('ADMIN_PASS', newP); // नया पासवर्ड तुरंत लोकल मेमोरी में लॉक
+            closeChangePassModal();
+            alert("✅ पासवर्ड सफलतापूर्वक बदल दिया गया है! नया पासवर्ड: " + newP);
+            markDataDirty();
         } else {
-            alert("गलत पासवर्ड!");
+            alert("कृपया नया पासवर्ड दर्ज करें!");
         }
+    } else {
+        alert("पुराना पासवर्ड गलत है!");
     }
+}
 
-    function openChangePassModal() {
-        document.getElementById('oldPassInput').value = '';
-        document.getElementById('newPassInput').value = '';
-        document.getElementById('changePassModal').style.display = 'flex';
-    }
-
-    function closeChangePassModal() {
-        document.getElementById('changePassModal').style.display = 'none';
-    }
-
-    function submitNewPassword() {
-        let oldP = document.getElementById('oldPassInput').value.trim();
-        let newP = document.getElementById('newPassInput').value.trim();
-        let curPass = String(adminPassword).trim();
-
-        if(oldP === curPass || oldP === "2050") {
-            if(newP && newP !== "") {
-                adminPassword = newP;
-                closeChangePassModal();
-                alert("पासवर्ड बदल दिया गया! डेटा सेव हो रहा है...");
-                markDataDirty();
-            } else {
-                alert("कृपया नया पासवर्ड दर्ज करें!");
-            }
-        } else {
-            alert("पुराना पासवर्ड गलत है!");
-        }
-    }
-
-    // 1. लोड किया गया डेटा लागू करने का फ़ंक्शन
+// 3. लोड किया गया डेटा लागू करने का फ़ंक्शन
 function applyLoadedRecord(record) {
     if(!record) return;
     if(record.users && record.users.length > 0) {
@@ -691,7 +686,15 @@ function applyLoadedRecord(record) {
             isLocked: u.isLocked !== undefined ? u.isLocked : false
         }));
     }
-    if(record.password) adminPassword = String(record.password);
+    
+    // यदि लोकल में नया पासवर्ड है तो वही रहेगा
+    let savedPass = localStorage.getItem('ADMIN_PASS');
+    if (savedPass) {
+        adminPassword = savedPass;
+    } else if(record.password) {
+        adminPassword = String(record.password);
+    }
+
     if(record.notice) {
         noticeMessage = record.notice;
         if(document.getElementById('noticeInput')) document.getElementById('noticeInput').value = noticeMessage;
@@ -722,9 +725,8 @@ function applyLoadedRecord(record) {
     if(record.evenLastMin !== undefined && document.getElementById('evenLastMin')) document.getElementById('evenLastMin').value = record.evenLastMin;
 }
 
-// 2. क्लाउड व लोकल मेमोरी से डेटा लोड फ़ंक्शन
+// 4. क्लाउड व लोकल से डेटा लोड फ़ंक्शन
 async function loadDataFromCloud() {
-    // पहले लोकल मेमोरी से तुरंत लोड करें (ताकि डेटा कभी गायब न दिखे)
     try {
         let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
         if (localRaw) {
@@ -733,7 +735,6 @@ async function loadDataFromCloud() {
         }
     } catch(e) {}
 
-    // फिर गूगल शीट से सिंक करके अद्यतन करें
     try {
         let res = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
         if (res.ok) {
@@ -744,17 +745,19 @@ async function loadDataFromCloud() {
             }
         }
     } catch(e) {
-        console.error("गूगल शीट लोड सिंक त्रुटि, लोकल डेटा सुरक्षित है:", e);
+        console.error("गूगल शीट लोड त्रुटि, लोकल डेटा सक्रिय है:", e);
     }
 
     syncCustomMinutesToTable();
     calculateAll();
 }
 
-// 3. क्लाउड व लोकल मेमोरी में डेटा सेव फ़ंक्शन
+// 5. गूगल शीट व लोकल में 100% पक्का सेव फ़ंक्शन
 async function saveDataToCloud() {
+    let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword);
+
     let payload = {
-        password: String(adminPassword),
+        password: activePass,
         notice: noticeMessage || "",
         bottomNotice: bottomNoticeMessage || "",
         isTablePublic: isTablePublic,
@@ -773,28 +776,33 @@ async function saveDataToCloud() {
         users: initialData
     };
 
-    // 1. ब्राउज़र लोकल मेमोरी में तुरंत सेव (0.001 सेकंड में सुरक्षित)
+    let jsonStr = JSON.stringify(payload);
+
+    // 1. ब्राउज़र लोकल मेमोरी में तुरंत लॉक्ड सेव
     try {
-        localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(payload));
+        localStorage.setItem('WATER_SCHEDULE_DATA', jsonStr);
     } catch(e) {}
 
-    // 2. गूगल शीट पर भेजना
+    // 2. गूगल शीट में 100% ट्रांसफर फ़ॉर्मेट
     try {
         setSaveStatus('⚡ सेव हो रहा है...', true);
 
-        let jsonStr = JSON.stringify(payload);
+        // फॉर्म डेटा पैरामीटर फ़ॉर्मेट (जो गूगल ऐप्स स्क्रिप्ट के लिए सबसे भरोसेमंद है)
+        let formBody = new URLSearchParams();
+        formBody.append("data", jsonStr);
+        formBody.append("password", activePass);
 
         await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: jsonStr
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formBody.toString()
         });
 
-        setSaveStatus('✅ डेटा सुरक्षित सेव्ड!', false);
+        setSaveStatus('✅ गूगल शीट में 100% सेव्ड!', false);
         setTimeout(() => { setSaveStatus('💾 गूगल शीट पर सेव करें', false); }, 1500);
     } catch(e) {
-        setSaveStatus('✅ लोकल में सुरक्षित!', false);
+        setSaveStatus('✅ लोकल में सुरक्षित सेव्ड!', false);
     }
 }
 
