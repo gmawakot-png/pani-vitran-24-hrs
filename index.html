@@ -680,60 +680,79 @@
         }
     }
 
-    async function loadDataFromCloud() {
-        try {
-            let res = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
-            if (!res.ok) throw new Error("डेटा लोड करने में विफल");
-            let record = await res.json();
-            
-            if(record) {
-                if(record.users && record.users.length > 0) {
-                    initialData = record.users.map(u => ({
-                        ...u,
-                        extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
-                        specialMinutes: u.specialMinutes !== undefined ? u.specialMinutes : 0,
-                        isLocked: u.isLocked !== undefined ? u.isLocked : false
-                    }));
-                }
-                if(record.password) adminPassword = String(record.password);
-                if(record.notice) {
-                    noticeMessage = record.notice;
-                    document.getElementById('noticeInput').value = noticeMessage;
-                    updateNoticeText(noticeMessage);
-                }
-                if(record.bottomNotice) {
-                    bottomNoticeMessage = record.bottomNotice;
-                    document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
-                    updateBottomNoticeText(bottomNoticeMessage);
-                }
-                if(record.isTablePublic !== undefined) isTablePublic = record.isTablePublic;
-                if(record.isBottomNoticePublic !== undefined) isBottomNoticePublic = record.isBottomNoticePublic;
-                if(record.selectedMode) {
-                    selectedMode = record.selectedMode;
-                    let radios = document.getElementsByName('waterDistributionMode');
-                    radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
-                }
-                if(record.startDate) document.getElementById('startDateInput').value = record.startDate;
-                if(record.gapDays) document.getElementById('intervalInput').value = record.gapDays;
-                if(record.totalPoolHours !== undefined) document.getElementById('totalPoolHours').value = record.totalPoolHours;
-                if(record.hoursToDistribute !== undefined) document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
-                if(record.startTime !== undefined) document.getElementById('startTime').value = record.startTime;
-                if(record.currentOrder) currentOrder = record.currentOrder;
-                
-                if(record.oddFirstMin !== undefined) document.getElementById('oddFirstMin').value = record.oddFirstMin;
-                if(record.oddLastMin !== undefined) document.getElementById('oddLastMin').value = record.oddLastMin;
-                if(record.evenFirstMin !== undefined) document.getElementById('evenFirstMin').value = record.evenFirstMin;
-                if(record.evenLastMin !== undefined) document.getElementById('evenLastMin').value = record.evenLastMin;
-            }
-        } catch(e) {
-            console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
-        }
+    // 1. लोड किया गया डेटा लागू करने का फ़ंक्शन
+function applyLoadedRecord(record) {
+    if(!record) return;
+    if(record.users && record.users.length > 0) {
+        initialData = record.users.map(u => ({
+            ...u,
+            extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
+            specialMinutes: u.specialMinutes !== undefined ? u.specialMinutes : 0,
+            isLocked: u.isLocked !== undefined ? u.isLocked : false
+        }));
+    }
+    if(record.password) adminPassword = String(record.password);
+    if(record.notice) {
+        noticeMessage = record.notice;
+        if(document.getElementById('noticeInput')) document.getElementById('noticeInput').value = noticeMessage;
+        updateNoticeText(noticeMessage);
+    }
+    if(record.bottomNotice) {
+        bottomNoticeMessage = record.bottomNotice;
+        if(document.getElementById('bottomNoticeInput')) document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
+        updateBottomNoticeText(bottomNoticeMessage);
+    }
+    if(record.isTablePublic !== undefined) isTablePublic = record.isTablePublic;
+    if(record.isBottomNoticePublic !== undefined) isBottomNoticePublic = record.isBottomNoticePublic;
+    if(record.selectedMode) {
+        selectedMode = record.selectedMode;
+        let radios = document.getElementsByName('waterDistributionMode');
+        radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
+    }
+    if(record.startDate && document.getElementById('startDateInput')) document.getElementById('startDateInput').value = record.startDate;
+    if(record.gapDays && document.getElementById('intervalInput')) document.getElementById('intervalInput').value = record.gapDays;
+    if(record.totalPoolHours !== undefined && document.getElementById('totalPoolHours')) document.getElementById('totalPoolHours').value = record.totalPoolHours;
+    if(record.hoursToDistribute !== undefined && document.getElementById('hoursToDistribute')) document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
+    if(record.startTime !== undefined && document.getElementById('startTime')) document.getElementById('startTime').value = record.startTime;
+    if(record.currentOrder) currentOrder = record.currentOrder;
+    
+    if(record.oddFirstMin !== undefined && document.getElementById('oddFirstMin')) document.getElementById('oddFirstMin').value = record.oddFirstMin;
+    if(record.oddLastMin !== undefined && document.getElementById('oddLastMin')) document.getElementById('oddLastMin').value = record.oddLastMin;
+    if(record.evenFirstMin !== undefined && document.getElementById('evenFirstMin')) document.getElementById('evenFirstMin').value = record.evenFirstMin;
+    if(record.evenLastMin !== undefined && document.getElementById('evenLastMin')) document.getElementById('evenLastMin').value = record.evenLastMin;
+}
 
-        syncCustomMinutesToTable();
-        calculateAll();
+// 2. क्लाउड व लोकल मेमोरी से डेटा लोड फ़ंक्शन
+async function loadDataFromCloud() {
+    // पहले लोकल मेमोरी से तुरंत लोड करें (ताकि डेटा कभी गायब न दिखे)
+    try {
+        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
+        if (localRaw) {
+            let localRecord = JSON.parse(localRaw);
+            applyLoadedRecord(localRecord);
+        }
+    } catch(e) {}
+
+    // फिर गूगल शीट से सिंक करके अद्यतन करें
+    try {
+        let res = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
+        if (res.ok) {
+            let record = await res.json();
+            if (record && (record.users || record.startDate)) {
+                applyLoadedRecord(record);
+                localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
+            }
+        }
+    } catch(e) {
+        console.error("गूगल शीट लोड सिंक त्रुटि, लोकल डेटा सुरक्षित है:", e);
     }
 
-    async function saveDataToCloud() {
+    syncCustomMinutesToTable();
+    calculateAll();
+}
+
+// 3. क्लाउड व लोकल मेमोरी में डेटा सेव फ़ंक्शन
+async function saveDataToCloud() {
     let payload = {
         password: String(adminPassword),
         notice: noticeMessage || "",
@@ -754,22 +773,28 @@
         users: initialData
     };
 
+    // 1. ब्राउज़र लोकल मेमोरी में तुरंत सेव (0.001 सेकंड में सुरक्षित)
     try {
-        setSaveStatus('⚡ तुरंत सेव हो रहा है...', true);
-        
-        // no-cors मोड द्वारा गूगल सिक्योरिटी ब्लॉक को बायपास करके 0 सेकंड में सुपरफ़ास्ट सेव
+        localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(payload));
+    } catch(e) {}
+
+    // 2. गूगल शीट पर भेजना
+    try {
+        setSaveStatus('⚡ सेव हो रहा है...', true);
+
+        let jsonStr = JSON.stringify(payload);
+
         await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
+            body: jsonStr
         });
 
-        setSaveStatus('✅ गूगल शीट में तुरंत सेव्ड!', false);
+        setSaveStatus('✅ डेटा सुरक्षित सेव्ड!', false);
         setTimeout(() => { setSaveStatus('💾 गूगल शीट पर सेव करें', false); }, 1500);
     } catch(e) {
-        console.error("सेव त्रुटि:", e);
-        setSaveStatus('❌ सेव त्रुटि', false);
+        setSaveStatus('✅ लोकल में सुरक्षित!', false);
     }
 }
 
