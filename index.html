@@ -34,12 +34,18 @@
         }
 
         .top-section { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
-        .controls-card, .summary-card, .search-card, .notice-card, .mode-card { background: #eef5f9; border: 1px solid #b8daff; border-radius: 6px; padding: 12px; flex: 1; min-width: 260px; }
+        .controls-card, .summary-card, .search-card, .notice-card, .mode-card, .custom-timing-card { background: #eef5f9; border: 1px solid #b8daff; border-radius: 6px; padding: 12px; flex: 1; min-width: 260px; }
         
         .mode-card { background: #fef3c7; border-color: #f59e0b; margin-bottom: 12px; }
         .mode-card h3 { color: #92400e; border-bottom: 1px solid #f59e0b; margin-top: 0; font-size: 15px; padding-bottom: 5px; }
         .mode-options { display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap; }
         .mode-options label { font-weight: bold; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #78350f; }
+
+        .custom-timing-card { background: #eaf2f8; border-color: #85c1e9; margin-bottom: 12px; }
+        .custom-timing-card h3 { color: #1b4f72; border-bottom: 1px solid #85c1e9; margin-top: 0; font-size: 15px; padding-bottom: 5px; }
+        .timing-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .timing-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; }
+        .timing-row input { width: 65px; padding: 4px; text-align: center; font-weight: bold; border: 1px solid #2980b9; border-radius: 4px; }
 
         .controls-card h3, .summary-card h3, .search-card h3, .notice-card h3 { margin-top: 0; color: #0c5460; font-size: 15px; border-bottom: 1px solid #b8daff; padding-bottom: 5px; }
         .input-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
@@ -91,7 +97,7 @@
         .summary-table td { padding: 5px 6px; font-size: 13px; border-bottom: 1px dashed #cbd5e1; }
         .summary-table td.val { text-align: right; font-weight: bold; color: #c0392b; }
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 15px; border: 1px solid #a6acaf; border-radius: 4px; }
-        table.main-table { width: 100%; min-width: 800px; border-collapse: collapse; font-size: 12px; }
+        table.main-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12px; }
         table.main-table th, table.main-table td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; white-space: nowrap; }
         table.main-table th { background-color: #ebedef; font-weight: bold; color: #2c3e50; }
         table.main-table th.red-txt, table.main-table td.red-txt { color: #c0392b; }
@@ -328,34 +334,27 @@
                 </div>
             </div>
 
-            <div style="background:#e8f8f5; padding:8px; border-radius:4px; border:1px solid #a3e4d7; margin-bottom:8px;">
-                <b style="color:#117a65; font-size:12px;">⚙️ विशेष मिनट सेटिंग्स (Custom Minutes):</b>
-                
-                <div style="margin-top:6px; padding:6px; background:#fff; border:1px dashed #117a65; border-radius:4px;">
-                    <span style="font-size:11px; font-weight:bold; color:#117a65; display:block; margin-bottom:4px;">👉 Odd व्यवस्था के लिए:</span>
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
-                        <div>
-                            <span style="font-size:10px; display:block;">प्रथम व्यक्ति (+मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddFirstMins" value="1" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
-                        </div>
-                        <div>
-                            <span style="font-size:10px; display:block;">आखिरी व्यक्ति (मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="oddLastMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
-                        </div>
+            <div class="custom-timing-card">
+                <h3>⚙️ विशेष मिनट सेटिंग्स (Custom Minutes)</h3>
+                <div class="timing-grid">
+                    <div style="font-size:11px; color:#1b4f72; font-weight:bold; border-bottom:1px dashed #aed6f1; padding-bottom:2px;">👉 Odd व्यवस्था के लिए:</div>
+                    <div class="timing-row">
+                        <span>प्रथम व्यक्ति (+मिनट):</span>
+                        <input type="text" id="oddFirstMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
                     </div>
-                </div>
-
-                <div style="margin-top:6px; padding:6px; background:#fff; border:1px dashed #c0392b; border-radius:4px;">
-                    <span style="font-size:11px; font-weight:bold; color:#c0392b; display:block; margin-bottom:4px;">👉 Even व्यवस्था के लिए:</span>
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:5px;">
-                        <div>
-                            <span style="font-size:10px; display:block;">प्रथम व्यक्ति (+मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenFirstMins" value="2" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
-                        </div>
-                        <div>
-                            <span style="font-size:10px; display:block;">आखिरी व्यक्ति (मिनट):</span>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="evenLastMins" value="0" style="width:70px; padding:3px; text-align:center; font-weight:bold;" oninput="applyModeTimeRules(); markDataDirty();">
-                        </div>
+                    <div class="timing-row">
+                        <span>आखिरी व्यक्ति (मिनट):</span>
+                        <input type="text" id="oddLastMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
+                    </div>
+                    
+                    <div style="font-size:11px; color:#1b4f72; font-weight:bold; border-bottom:1px dashed #aed6f1; padding-bottom:2px; margin-top:4px;">👉 Even व्यवस्था के लिए:</div>
+                    <div class="timing-row">
+                        <span>प्रथम व्यक्ति (+मिनट):</span>
+                        <input type="text" id="evenFirstMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
+                    </div>
+                    <div class="timing-row">
+                        <span>आखिरी व्यक्ति (मिनट):</span>
+                        <input type="text" id="evenLastMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
                     </div>
                 </div>
             </div>
@@ -383,7 +382,7 @@
         </div>
     </div>
 
-    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align- items: center;">
         <input type="text" id="tableSearchInput" placeholder="🔎 सारणी में नाम खोजें..." onkeyup="filterTableByName()" style="padding: 6px 10px; width: 220px; font-size: 13px; border: 1px solid #bdc3c7; border-radius: 4px;">
     </div>
 
@@ -397,6 +396,7 @@
                     <th class="red-txt" style="width: 55px;">मिनट</th>
                     <th class="red-txt">घंटे /मिनट</th>
                     <th class="red-txt">अतिरिक्त समय & लॉक</th>
+                    <th class="red-txt" style="background:#e8f8f5; color:#117a65;">विशेष मिनट</th>
                     <th class="red-txt">से (शुरुआत)</th>
                     <th class="red-txt">तक (समाप्ति)</th>
                     <th style="width: 65px;">धनराशी</th>
@@ -413,8 +413,9 @@
                     <td id="totalMinFoot">0</td>
                     <td id="totalDurationFoot">0 घंटे 0 मिनट</td>
                     <td id="totalExtraFoot">0</td>
+                    <td id="totalSpecialFoot" style="color:#117a65;">0</td>
                     <td></td>
-                    <td id="totalEndFoot">अंतिम समाप्ति: -</td>
+                    <td id="totalEndFoot" style="text-align:center;">अंतिम समाप्ति: -</td>
                     <td id="totalAmountFoot" style="color:#27ae60; font-size:13px; text-align:center;">0</td>
                     <td colspan="4"></td>
                 </tr>
@@ -483,24 +484,24 @@
     let currentOrder = "straight";
 
     let initialData = [
-        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री राजेश कुमार जी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री कांता डबराल जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती बसंती देवी", bigha: 1, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री विपिन खंतवाल", bigha: 3, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती उषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती अंजू देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "गणेश", bigha: 3.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती गीता देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती मनीषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री राजू बिष्ट", bigha: 7, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती मनीषा देवी २", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती पिंकी देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्री मस्तान सिंह जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती पुनीता देवी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, isLocked: false },
-        { name: "श्रीमती जस्सी देवी", bigha: 3, amount: 100, date: "25-07", extraMinutes: 0, isLocked: false }
+        { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्री उत्तम सिंह बिष्ट", bigha: 5, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्री कोमल सिंह नेगी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्री राजेश कुमार जी", bigha: 2, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्री कांता डबराल जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती बसंती देवी", bigha: 1, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्री विपिन खंतवाल", bigha: 3, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती उषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती अंजू देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "गणेश", bigha: 3.5, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती गीता देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती मनीषा देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्री राजू बिष्ट", bigha: 7, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती मनीषा देवी २", bigha: 2, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती पिंकी देवी", bigha: 2, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्री मस्तान सिंह जी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती पुनीता देवी", bigha: 0.5, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
+        { name: "श्रीमती जस्सी देवी", bigha: 3, amount: 100, date: "25-07", extraMinutes: 0, specialMinutes: 0, isLocked: false }
     ];
 
     function updateLiveClock() {
@@ -513,6 +514,37 @@
     function debouncedCalculate() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => { updateCalculatedValuesOnly(); }, 300);
+    }
+
+    function onCustomTimingInput() {
+        syncCustomMinutesToTable();
+        renderTable();
+        markDataDirty();
+    }
+
+    function syncCustomMinutesToTable() {
+        if (initialData.length === 0) return;
+        
+        initialData.forEach(row => { row.specialMinutes = 0; });
+
+        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
+
+        let totalLen = initialData.length;
+
+        if (selectedMode === "oddeven") {
+            if (totalLen > 0) {
+                if (currentOrder === "straight") {
+                    initialData[0].specialMinutes += oddF + evenL;
+                    if (totalLen > 1) initialData[totalLen - 1].specialMinutes += oddL + evenF;
+                } else { 
+                    initialData[0].specialMinutes += evenF + oddL;
+                    if (totalLen > 1) initialData[totalLen - 1].specialMinutes += evenL + oddF;
+                }
+            }
+        }
     }
 
     function setSaveStatus(message, isBusy) {
@@ -560,70 +592,27 @@
 
     function handleModeChange(val) {
         selectedMode = val;
-        applyModeTimeRules();
-        updateCalculatedValuesOnly();
-        markDataDirty();
-    }
-
-    function applyModeTimeRules() {
-        if (initialData.length === 0) return;
-        
-        let oddFirst = parseFloat(document.getElementById("oddFirstMins").value) || 0;
-        let oddLast = parseFloat(document.getElementById("oddLastMins").value) || 0;
-        let evenFirst = parseFloat(document.getElementById("evenFirstMins").value) || 0;
-        let evenLast = parseFloat(document.getElementById("evenLastMins").value) || 0;
-
-        let totalRows = initialData.length;
-
-        initialData.forEach((row, idx) => {
-            let isFirst = (idx === 0);
-            let isLast = (idx === totalRows - 1);
-
-            if (row.isLocked) return;
-
-            if (currentOrder === "straight") { 
-                if (isFirst) {
-                    row.extraMinutes = oddFirst; 
-                } else if (isLast) {
-                    row.extraMinutes = oddLast; 
-                }
-            } else { 
-                if (isFirst) {
-                    row.extraMinutes = evenFirst; 
-                } else if (isLast) {
-                    row.extraMinutes = evenLast; 
-                }
-            }
-        });
-
+        syncCustomMinutesToTable();
         renderTable();
+        markDataDirty();
     }
 
     function moveRow(index, direction) {
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= initialData.length) return;
-
         [initialData[index], initialData[newIndex]] = [initialData[newIndex], initialData[index]];
-
-        applyModeTimeRules();
-        populateUserDropdown(); // क्रम बदलने पर ड्रॉपडाउन भी अपडेट करें
+        populateUserDropdown();
         renderTable();
         markDataDirty();
     }
 
-    // 🎯 अपडेटेड फंक्शन: टेबल का क्रम उलटने के साथ ही Dropdown को भी अपडेट करता है
+    // क्रम उल्टा करने पर अनलॉक्ड एक्स्ट्रा मिनट मिटेंगे नहीं, बल्कि केवल उल्टे क्रम में छिपे रहेंगे
     function reverseTable() {
         initialData.reverse();
+        currentOrder = (currentOrder === "straight") ? "reverse" : "straight";
 
-        if (currentOrder === "straight") {
-            currentOrder = "reverse";
-        } else {
-            currentOrder = "straight";
-        }
-
-        applyModeTimeRules();
-        populateUserDropdown(); // ड्रॉपडाउन लिस्ट का क्रम तुरंत बदल दिया जाएगा
-        updateCalculatedValuesOnly();
+        syncCustomMinutesToTable();
+        calculateAll();
         markDataDirty();
     }
 
@@ -697,6 +686,7 @@
                     initialData = record.users.map(u => ({
                         ...u,
                         extraMinutes: u.extraMinutes !== undefined ? u.extraMinutes : 0,
+                        specialMinutes: u.specialMinutes !== undefined ? u.specialMinutes : 0,
                         isLocked: u.isLocked !== undefined ? u.isLocked : false
                     }));
                 }
@@ -718,26 +708,23 @@
                     let radios = document.getElementsByName('waterDistributionMode');
                     radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
                 }
-                if(record.oddFirstMins !== undefined) document.getElementById('oddFirstMins').value = record.oddFirstMins;
-                if(record.oddLastMins !== undefined) document.getElementById('oddLastMins').value = record.oddLastMins;
-                if(record.evenFirstMins !== undefined) document.getElementById('evenFirstMins').value = record.evenFirstMins;
-                if(record.evenLastMins !== undefined) document.getElementById('evenLastMins').value = record.evenLastMins;
-
                 if(record.startDate) document.getElementById('startDateInput').value = record.startDate;
                 if(record.gapDays) document.getElementById('intervalInput').value = record.gapDays;
                 if(record.totalPoolHours !== undefined) document.getElementById('totalPoolHours').value = record.totalPoolHours;
                 if(record.hoursToDistribute !== undefined) document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
                 if(record.startTime !== undefined) document.getElementById('startTime').value = record.startTime;
-
-                if(record.currentOrder === "straight" || record.currentOrder === "reverse") {
-                    currentOrder = record.currentOrder;
-                }
+                if(record.currentOrder) currentOrder = record.currentOrder;
+                
+                if(record.oddFirstMin !== undefined) document.getElementById('oddFirstMin').value = record.oddFirstMin;
+                if(record.oddLastMin !== undefined) document.getElementById('oddLastMin').value = record.oddLastMin;
+                if(record.evenFirstMin !== undefined) document.getElementById('evenFirstMin').value = record.evenFirstMin;
+                if(record.evenLastMin !== undefined) document.getElementById('evenLastMin').value = record.evenLastMin;
             }
         } catch(e) {
             console.error("Google Sheet से डेटा लोड नहीं हो सका:", e);
         }
 
-        applyModeTimeRules();
+        syncCustomMinutesToTable();
         calculateAll();
     }
 
@@ -749,16 +736,16 @@
             isTablePublic: isTablePublic,
             isBottomNoticePublic: isBottomNoticePublic,
             selectedMode: selectedMode,
-            oddFirstMins: document.getElementById('oddFirstMins').value,
-            oddLastMins: document.getElementById('oddLastMins').value,
-            evenFirstMins: document.getElementById('evenFirstMins').value,
-            evenLastMins: document.getElementById('evenLastMins').value,
             startDate: document.getElementById('startDateInput').value,
             gapDays: document.getElementById('intervalInput').value,
             totalPoolHours: document.getElementById('totalPoolHours').value,
             hoursToDistribute: document.getElementById('hoursToDistribute').value,
             startTime: document.getElementById('startTime').value,
             currentOrder: currentOrder,
+            oddFirstMin: document.getElementById('oddFirstMin').value,
+            oddLastMin: document.getElementById('oddLastMin').value,
+            evenFirstMin: document.getElementById('evenFirstMin').value,
+            evenLastMin: document.getElementById('evenLastMin').value,
             users: initialData
         };
 
@@ -770,9 +757,7 @@
             });
             if(res.ok) {
                 setSaveStatus('✅ गूगल शीट में अपडेटेड', false);
-                setTimeout(() => {
-                    setSaveStatus('💾 गूगल शीट पर सेव करें', false);
-                }, 1000);
+                setTimeout(() => { setSaveStatus('💾 गूगल शीट पर सेव करें', false); }, 1000);
             } else {
                 setSaveStatus('❌ सेव में त्रुटि', false);
             }
@@ -787,7 +772,6 @@
         generate30DaysCalendar();
     }
 
-    // 🎯 अपडेटेड Dropdown फंक्शन: जो हमेशा टेबल के चालू क्रम के हिसाब से नाम दिखाता है
     function populateUserDropdown() {
         let select = document.getElementById('userSelect');
         select.innerHTML = '<option value="">-- नाम चुनें --</option>';
@@ -801,36 +785,104 @@
         document.getElementById('printSlipBtn').style.display = 'none';
     }
 
+    function getListWithReversedRowsIfNeeded(isOddMode) {
+        let rows = JSON.parse(JSON.stringify(initialData));
+        if (selectedMode === "oddeven") {
+            if (currentOrder === "straight") {
+                if (!isOddMode) rows.reverse();
+            } else { 
+                if (isOddMode) rows.reverse();
+            }
+        } else {
+            if (currentOrder === "reverse") rows.reverse();
+        }
+        return rows;
+    }
+
+    function getCustomCalculatedMinutes(listData, isOddMode) {
+        let totalBigha = listData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
+        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
+        let targetTotalMinutes = hoursToDistribute * 60;
+
+        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
+
+        let totalLen = listData.length;
+
+        return listData.map((row, idx) => {
+            let bigha = parseFloat(row.bigha) || 0;
+            let pureMinutes = (totalBigha > 0) ? (bigha * targetTotalMinutes / totalBigha) : 0;
+            
+            // अनलॉक्ड अतिरिक्त समय केवल सुल्टे (Odd) चक्र में लगेगा।
+            // यदि पंक्ति लॉक्ड (isLocked = true) है, तो अतिरिक्त समय सुल्टे और उल्टे दोनों चक्रों में लगेगा।
+            let rawExtra = parseFloat(row.extraMinutes) || 0;
+            let extra = 0;
+            if (isOddMode || row.isLocked) {
+                extra = rawExtra;
+            }
+
+            let special = 0;
+            if (selectedMode === "oddeven") {
+                if (isOddMode) {
+                    if (idx === 0) special += oddF;
+                    if (idx === totalLen - 1) special += oddL;
+                } else { 
+                    if (idx === 0) special += evenF;
+                    if (idx === totalLen - 1) special += evenL;
+                }
+            } else {
+                special = parseFloat(row.specialMinutes) || 0;
+            }
+            
+            return pureMinutes + extra + special;
+        });
+    }
+
     function updateCalculatedValuesOnly() {
         let totalBigha = 0;
-        let totalMinutesCalc = 0;
-        let totalExtraMinutes = 0;
         let totalAmountVal = 0;
+        let totalExtraMinutes = 0;
+        let totalSpecialMinutes = 0;
 
-        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
+        let isCurrentOdd = (selectedMode === "oddeven") ? (currentOrder === "straight") : (currentOrder === "straight");
+        let activeList = getListWithReversedRowsIfNeeded(isCurrentOdd);
 
-        initialData.forEach((row) => {
-            let bigha = parseFloat(row.bigha) || 0;
-            let amount = parseFloat(row.amount) || 0;
-            totalBigha += bigha;
-            totalAmountVal += amount;
-            totalExtraMinutes += parseFloat(row.extraMinutes) || 0;
+        activeList.forEach((row) => {
+            totalBigha += parseFloat(row.bigha) || 0;
+            totalAmountVal += parseFloat(row.amount) || 0;
+            
+            let rawExtra = parseFloat(row.extraMinutes) || 0;
+            if (isCurrentOdd || row.isLocked) {
+                totalExtraMinutes += rawExtra;
+            }
         });
 
+        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
         let targetTotalMinutes = hoursToDistribute * 60;
         let cumulativeMinutes = 0;
         let startStr = document.getElementById('startTime').value.trim();
         let lastEndTimeFormatted = '-';
 
+        let rowMinutesList = getCustomCalculatedMinutes(activeList, isCurrentOdd);
+        let totalMinutesCalc = rowMinutesList.reduce((sum, v) => sum + v, 0);
+
+        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
+
+        if (selectedMode === "oddeven") {
+            totalSpecialMinutes = oddF + oddL + evenF + evenL;
+        } else {
+            totalSpecialMinutes = activeList.reduce((sum, r) => sum + (parseFloat(r.specialMinutes) || 0), 0);
+        }
+
         let rows = document.getElementById('tableBody').getElementsByTagName('tr');
 
-        initialData.forEach((row, idx) => {
-            let bigha = parseFloat(row.bigha) || 0;
-            let pureMinutes = (totalBigha > 0) ? (bigha * targetTotalMinutes / totalBigha) : 0;
-            let extra = parseFloat(row.extraMinutes) || 0;
-            let minutes = pureMinutes + extra;
-            totalMinutesCalc += minutes;
-
+        activeList.forEach((row, idx) => {
+            let minutes = rowMinutesList[idx];
             let hoursPart = Math.floor(minutes / 60);
             let minsPart = Math.round(minutes % 60);
 
@@ -839,13 +891,15 @@
             lastEndTimeFormatted = endTimeFormatted;
             cumulativeMinutes += minutes;
 
-            if (rows[idx]) {
-                let cells = rows[idx].getElementsByTagName('td');
-                if (cells.length >= 8) {
+            let realIdx = initialData.findIndex(r => r.name === row.name);
+
+            if (rows[realIdx]) {
+                let cells = rows[realIdx].getElementsByTagName('td');
+                if (cells.length >= 9) {
                     cells[3].innerText = Math.round(minutes);
                     cells[4].innerText = `${hoursPart} घंटे ${minsPart} मिनट`;
-                    cells[6].innerText = startTimeFormatted;
-                    cells[7].innerText = endTimeFormatted;
+                    cells[7].innerText = startTimeFormatted;
+                    cells[8].innerText = endTimeFormatted;
                 }
             }
         });
@@ -855,6 +909,7 @@
         let totalMins = Math.round(totalMinutesCalc % 60);
         document.getElementById('totalDurationFoot').innerText = totalHours + " घंटे " + totalMins + " मिनट";
         document.getElementById('totalExtraFoot').innerText = Math.round(totalExtraMinutes);
+        document.getElementById('totalSpecialFoot').innerText = Math.round(totalSpecialMinutes);
         document.getElementById('totalAmountFoot').innerText = totalAmountVal;
         document.getElementById('sumBigha').innerText = totalBigha;
         document.getElementById('totalEndFoot').innerText = lastEndTimeFormatted === '-' ? '-' : `${totalHours} घंटे ${totalMins} मिनट`;
@@ -863,7 +918,7 @@
         let distM = Math.round(targetTotalMinutes % 60);
         document.getElementById('displayDistributedHM').innerText = `${distH} घंटे ${distM} मिनट`;
 
-        let totalDistributionMinutes = targetTotalMinutes + totalExtraMinutes;
+        let totalDistributionMinutes = targetTotalMinutes + totalExtraMinutes + totalSpecialMinutes;
         let totalDistH = Math.floor(totalDistributionMinutes / 60);
         let totalDistM = Math.round(totalDistributionMinutes % 60);
         document.getElementById('displayTotalDistributionHM').innerText = `${totalDistH} घंटे ${totalDistM} मिनट`;
@@ -873,11 +928,7 @@
         let remHPart = Math.floor(remMins / 60);
         let remMPart = Math.round(remMins % 60);
 
-        let remText = "";
-        if(remHPart > 0 && remMPart > 0) remText = `${remHPart} घंटे ${remMPart} मिनट`;
-        else if(remHPart > 0) remText = `${remHPart} घंटे`;
-        else remText = `${remMPart} मिनट`;
-
+        let remText = (remHPart > 0 && remMPart > 0) ? `${remHPart} घंटे ${remMPart} मिनट` : (remHPart > 0 ? `${remHPart} घंटे` : `${remMPart} मिनट`);
         document.getElementById('displayRemainingHours').innerText = remText;
     }
 
@@ -887,31 +938,30 @@
 
         let totalBigha = 0;
         let totalAmountVal = 0;
-        let totalExtraMinutes = 0;
 
-        initialData.forEach((row) => {
-            totalBigha += parseFloat(row.bigha) || 0;
-            totalAmountVal += parseFloat(row.amount) || 0;
-            totalExtraMinutes += parseFloat(row.extraMinutes) || 0;
-        });
-
-        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
-        let targetTotalMinutes = hoursToDistribute * 60;
         let cumulativeMinutes = 0;
         let startStr = document.getElementById('startTime').value.trim();
+        let isCurrentOdd = (selectedMode === "oddeven") ? (currentOrder === "straight") : (currentOrder === "straight");
+        let activeList = getListWithReversedRowsIfNeeded(isCurrentOdd);
+        let rowMinutesList = getCustomCalculatedMinutes(activeList, isCurrentOdd);
 
-        initialData.forEach((row, idx) => {
-            let bigha = parseFloat(row.bigha) || 0;
-            let pureMinutes = (totalBigha > 0) ? (bigha * targetTotalMinutes / totalBigha) : 0;
-            let extra = parseFloat(row.extraMinutes) || 0;
-            let minutes = pureMinutes + extra;
+        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
 
+        let totalLen = activeList.length;
+
+        activeList.forEach((row, idx) => {
+            let minutes = rowMinutesList[idx];
             let hoursPart = Math.floor(minutes / 60);
             let minsPart = Math.round(minutes % 60);
 
             let startTimeFormatted = addMinutesToTime(startStr, cumulativeMinutes);
             let endTimeFormatted = addMinutesToTime(startStr, cumulativeMinutes + minutes);
             cumulativeMinutes += minutes;
+
+            let realIdx = initialData.findIndex(r => r.name === row.name);
 
             let tr = document.createElement('tr');
             if(isAdmin) tr.classList.add('highlight-row');
@@ -920,44 +970,66 @@
             if(isAdmin) {
                 adminActionHtml = `
                     <div class="admin-action-container">
-                        <button class="btn-move" onclick="moveRow(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="ऊपर">▲</button>
-                        <button class="btn-move" onclick="moveRow(${idx}, 1)" ${idx === initialData.length - 1 ? 'disabled' : ''} title="नीचे">▼</button>
-                        <button class="btn-add-inline" onclick="addRowAt(${idx}, 'above')" title="ऊपर नया जोड़ें">+▲</button>
-                        <button class="btn-add-inline" onclick="addRowAt(${idx}, 'below')" title="नीचे नया जोड़ें">+▼</button>
+                        <button class="btn-move" onclick="moveRow(${realIdx}, -1)" ${realIdx === 0 ? 'disabled' : ''} title="ऊपर">▲</button>
+                        <button class="btn-move" onclick="moveRow(${realIdx}, 1)" ${realIdx === initialData.length - 1 ? 'disabled' : ''} title="नीचे">▼</button>
+                        <button class="btn-add-inline" onclick="addRowAt(${realIdx}, 'above')" title="ऊपर नया जोड़ें">+▲</button>
+                        <button class="btn-add-inline" onclick="addRowAt(${realIdx}, 'below')" title="नीचे नया जोड़ें">+▼</button>
                     </div>
                 `;
             }
 
             let isLocked = row.isLocked !== undefined ? row.isLocked : false;
-            let extraValue = (row.extraMinutes === "" || row.extraMinutes === null || row.extraMinutes === undefined) ? "" : row.extraMinutes;
+            let rawExtra = (row.extraMinutes === "" || row.extraMinutes === null || row.extraMinutes === undefined) ? "" : row.extraMinutes;
+            
+            // अनलॉक्ड होने पर उल्टे क्रम में अतिरिक्त समय 0 (खाली) दिखेगा, लॉक होने पर दोनों जगह दिखेगा
+            let displayExtra = rawExtra;
+            if (!isCurrentOdd && !isLocked) {
+                displayExtra = "";
+            }
+            
+            let currentSpecial = 0;
+            if (selectedMode === "oddeven") {
+                if (isCurrentOdd) {
+                    if (idx === 0) currentSpecial = oddF;
+                    else if (idx === totalLen - 1) currentSpecial = oddL;
+                } else { 
+                    if (idx === 0) currentSpecial = evenF;
+                    else if (idx === totalLen - 1) currentSpecial = evenL;
+                }
+            } else {
+                currentSpecial = parseFloat(row.specialMinutes) || 0;
+            }
 
             let extraColumnContent = `
                 <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
                     <div style="display:flex; flex-direction:column; align-items:center; gap:3px;">
-                        <button type="button" class="btn-arrow" onclick="adjustRowExtra(${idx}, 1)" title="ऊपर बढ़ाएँ">▲</button>
-                        <button type="button" class="btn-arrow" onclick="adjustRowExtra(${idx}, -1)" title="नीचे घटाएँ">▼</button>
+                        <button type="button" class="btn-arrow" onclick="adjustRowExtra(${realIdx}, 1)" title="ऊपर बढ़ाएँ">▲</button>
+                        <button type="button" class="btn-arrow" onclick="adjustRowExtra(${realIdx}, -1)" title="नीचे घटाएँ">▼</button>
                     </div>
-                    <input type="text" inputmode="numeric" pattern="[0-9-]*" class="clean-input" data-row-idx="${idx}" data-field="extraMinutes" style="width:50px; text-align:center;" value="${extraValue}" oninput="updateRowExtraInline(${idx}, this.value);" title="अतिरिक्त समय मिनट">
-                    <button class="btn-lock" onclick="toggleRowLock(${idx})" style="background:${isLocked ? '#e74c3c' : '#27ae60'};" title="${isLocked ? 'अनलॉक करें' : 'लॉक करें'}">${isLocked ? '🔒' : '🔓'}</button>
+                    <input type="text" inputmode="numeric" pattern="[0-9-]*" class="clean-input" data-row-idx="${realIdx}" data-field="extraMinutes" style="width:50px; text-align:center;" value="${displayExtra}" oninput="updateRowExtraInline(${realIdx}, this.value);" title="अतिरिक्त समय मिनट">
+                    <button class="btn-lock" onclick="toggleRowLock(${realIdx})" style="background:${isLocked ? '#e74c3c' : '#27ae60'};" title="${isLocked ? 'अनलॉक करें' : 'लॉक करें'}">${isLocked ? '🔒' : '🔓'}</button>
                 </div>
             `;
 
+            let specialColumnContent = `<span style="font-weight:bold; color:#117a65; font-size:12px;">${currentSpecial} मि०</span>`;
+
             tr.innerHTML = `
-                <td>${idx + 1}</td>
-                <td><input type="text" class="clean-input" data-row-idx="${idx}" data-field="name" style="width:130px;" value="${row.name}" oninput="updateRowFieldInline(${idx}, 'name', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
-                <td><input type="text" inputmode="decimal" pattern="[0-9.]*" class="clean-input" data-row-idx="${idx}" data-field="bigha" style="width:50px; text-align:center;" value="${row.bigha}" oninput="updateRowFieldInline(${idx}, 'bigha', this.value);" ${!isAdmin ? 'readonly' : ''}></td>
+                <td>${realIdx + 1}</td>
+                <td><input type="text" class="clean-input" data-row-idx="${realIdx}" data-field="name" style="width:130px;" value="${row.name}" oninput="updateRowFieldInline(${realIdx}, 'name', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" inputmode="decimal" pattern="[0-9.]*" class="clean-input" data-row-idx="${realIdx}" data-field="bigha" style="width:50px; text-align:center;" value="${row.bigha}" oninput="updateRowFieldInline(${realIdx}, 'bigha', this.value);" ${!isAdmin ? 'readonly' : ''}></td>
                 <td class="red-txt">${Math.round(minutes)}</td>
                 <td class="red-txt">${hoursPart} घंटे ${minsPart} मिनट</td>
                 <td>${extraColumnContent}</td>
+                <td style="background:#fef9e7;">${specialColumnContent}</td>
                 <td class="red-txt">${startTimeFormatted}</td>
                 <td class="red-txt">${endTimeFormatted}</td>
-                <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="clean-input" data-row-idx="${idx}" data-field="amount" style="width:60px; text-align:center;" value="${row.amount || ''}" placeholder="0" oninput="updateRowFieldInline(${idx}, 'amount', this.value);" ${!isAdmin ? 'readonly' : ''}></td>
-                <td><input type="text" class="clean-input" data-row-idx="${idx}" data-field="date" style="width:75px; text-align:center;" value="${row.date || ''}" placeholder="DD MM YY" oninput="updateRowFieldInline(${idx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="clean-input" data-row-idx="${realIdx}" data-field="amount" style="width:60px; text-align:center;" value="${row.amount || ''}" placeholder="0" oninput="updateRowFieldInline(${realIdx}, 'amount', this.value);" ${!isAdmin ? 'readonly' : ''}></td>
+                <td><input type="text" class="clean-input" data-row-idx="${realIdx}" data-field="date" style="width:75px; text-align:center;" value="${row.date || ''}" placeholder="DD MM YY" oninput="updateRowFieldInline(${realIdx}, 'date', this.value)" ${!isAdmin ? 'readonly' : ''}></td>
                 <td>
-                    <button class="btn-row-print" onclick="printRowSlip(${idx})">🖨️ पर्ची</button>
+                    <button class="btn-row-print" onclick="printRowSlip(${realIdx})">🖨️ पर्ची</button>
                 </td>
                 <td style="display: ${isAdmin ? 'table-cell' : 'none'};">${adminActionHtml}</td>
-                <td style="display: ${isAdmin ? 'table-cell' : 'none'};"><button class="btn-delete" onclick="deleteRow(${idx})">❌</button></td>
+                <td style="display: ${isAdmin ? 'table-cell' : 'none'};"><button class="btn-delete" onclick="deleteRow(${realIdx})">❌</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -993,7 +1065,6 @@
             let parsed = parseFloat(cleanVal);
             initialData[idx].extraMinutes = isNaN(parsed) ? 0 : parsed;
         }
-
         updateCalculatedValuesOnly();
         markDataDirty();
     }
@@ -1026,12 +1097,12 @@
             amount: "",
             date: "",
             extraMinutes: 0,
+            specialMinutes: 0,
             isLocked: false
         };
 
         let insertIndex = position === "above" ? index : index + 1;
         initialData.splice(insertIndex, 0, newRow);
-        applyModeTimeRules();
 
         calculateAll();
         markDataDirty();
@@ -1040,7 +1111,6 @@
     function deleteRow(idx) {
         if(confirm("क्या आप वाकई इस पंक्ति को हटाना चाहते हैं?")) {
             initialData.splice(idx, 1);
-            applyModeTimeRules();
             calculateAll();
             markDataDirty();
         }
@@ -1097,42 +1167,13 @@
     }
 
     function getUserSlotData(userIndex, isOddMode) {
-        let rows = [...initialData];
-        let totalBigha = rows.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
-        let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
-        let targetTotalMinutes = hoursToDistribute * 60;
+        let rows = getListWithReversedRowsIfNeeded(isOddMode);
+        let rowMinutesList = getCustomCalculatedMinutes(rows, isOddMode);
         let startStr = document.getElementById('startTime').value.trim();
 
-        let oddFirst = parseFloat(document.getElementById("oddFirstMins").value) || 0;
-        let oddLast = parseFloat(document.getElementById("oddLastMins").value) || 0;
-        let evenFirst = parseFloat(document.getElementById("evenFirstMins").value) || 0;
-        let evenLast = parseFloat(document.getElementById("evenLastMins").value) || 0;
-
-        let totalRows = rows.length;
-
-        let rowMinutesList = rows.map((row, idx) => {
-            let pureMinutes = totalBigha > 0 ? ((parseFloat(row.bigha) || 0) * targetTotalMinutes / totalBigha) : 0;
-            let extra = 0;
-
-            if (isOddMode) {
-                if (idx === 0) extra = oddFirst;
-                else if (idx === totalRows - 1) extra = oddLast;
-                else extra = parseFloat(row.extraMinutes) || 0;
-            } else {
-                let revIdx = totalRows - 1 - idx;
-                if (revIdx === 0) extra = evenFirst;
-                else if (revIdx === totalRows - 1) extra = evenLast;
-                else extra = parseFloat(row.extraMinutes) || 0;
-            }
-
-            return pureMinutes + extra;
-        });
-
-        if (!isOddMode) {
-            rowMinutesList.reverse();
-        }
-
-        let actualIdx = isOddMode ? userIndex : (totalRows - 1 - userIndex);
+        let targetName = initialData[userIndex].name;
+        let actualIdx = rows.findIndex(r => r.name === targetName);
+        if(actualIdx === -1) actualIdx = userIndex;
 
         let beforeUserMinutes = rowMinutesList.slice(0, actualIdx).reduce((sum, val) => sum + val, 0);
         let userMinutes = rowMinutesList[actualIdx] || 0;
