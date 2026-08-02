@@ -382,7 +382,7 @@
         </div>
     </div>
 
-    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align- items: center;">
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
         <input type="text" id="tableSearchInput" placeholder="🔎 सारणी में नाम खोजें..." onkeyup="filterTableByName()" style="padding: 6px 10px; width: 220px; font-size: 13px; border: 1px solid #bdc3c7; border-radius: 4px;">
     </div>
 
@@ -606,7 +606,6 @@
         markDataDirty();
     }
 
-    // क्रम उल्टा करने पर अनलॉक्ड एक्स्ट्रा मिनट मिटेंगे नहीं, बल्कि केवल उल्टे क्रम में छिपे रहेंगे
     function reverseTable() {
         initialData.reverse();
         currentOrder = (currentOrder === "straight") ? "reverse" : "straight";
@@ -785,21 +784,18 @@
         document.getElementById('printSlipBtn').style.display = 'none';
     }
 
-    function getListWithReversedRowsIfNeeded(isOddMode) {
+    // स्क्रीन पर दिख रही वर्तमान तालिका के अनुसार प्राथमिक साइकिल तय करना
+    function getListWithReversedRowsIfNeeded(isFirstCycle) {
         let rows = JSON.parse(JSON.stringify(initialData));
         if (selectedMode === "oddeven") {
-            if (currentOrder === "straight") {
-                if (!isOddMode) rows.reverse();
-            } else { 
-                if (isOddMode) rows.reverse();
+            if (!isFirstCycle) {
+                rows.reverse();
             }
-        } else {
-            if (currentOrder === "reverse") rows.reverse();
         }
         return rows;
     }
 
-    function getCustomCalculatedMinutes(listData, isOddMode) {
+    function getCustomCalculatedMinutes(listData, isFirstCycle) {
         let totalBigha = listData.reduce((acc, curr) => acc + (parseFloat(curr.bigha) || 0), 0);
         let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
         let targetTotalMinutes = hoursToDistribute * 60;
@@ -815,22 +811,30 @@
             let bigha = parseFloat(row.bigha) || 0;
             let pureMinutes = (totalBigha > 0) ? (bigha * targetTotalMinutes / totalBigha) : 0;
             
-            // अनलॉक्ड अतिरिक्त समय केवल सुल्टे (Odd) चक्र में लगेगा।
-            // यदि पंक्ति लॉक्ड (isLocked = true) है, तो अतिरिक्त समय सुल्टे और उल्टे दोनों चक्रों में लगेगा।
             let rawExtra = parseFloat(row.extraMinutes) || 0;
             let extra = 0;
-            if (isOddMode || row.isLocked) {
+            if (isFirstCycle || row.isLocked) {
                 extra = rawExtra;
             }
 
             let special = 0;
             if (selectedMode === "oddeven") {
-                if (isOddMode) {
-                    if (idx === 0) special += oddF;
-                    if (idx === totalLen - 1) special += oddL;
-                } else { 
-                    if (idx === 0) special += evenF;
-                    if (idx === totalLen - 1) special += evenL;
+                if (currentOrder === "straight") {
+                    if (isFirstCycle) {
+                        if (idx === 0) special += oddF;
+                        if (idx === totalLen - 1) special += oddL;
+                    } else {
+                        if (idx === 0) special += evenF;
+                        if (idx === totalLen - 1) special += evenL;
+                    }
+                } else { // currentOrder === "reverse"
+                    if (isFirstCycle) {
+                        if (idx === 0) special += evenF;
+                        if (idx === totalLen - 1) special += evenL;
+                    } else {
+                        if (idx === 0) special += oddF;
+                        if (idx === totalLen - 1) special += oddL;
+                    }
                 }
             } else {
                 special = parseFloat(row.specialMinutes) || 0;
@@ -846,17 +850,14 @@
         let totalExtraMinutes = 0;
         let totalSpecialMinutes = 0;
 
-        let isCurrentOdd = (selectedMode === "oddeven") ? (currentOrder === "straight") : (currentOrder === "straight");
-        let activeList = getListWithReversedRowsIfNeeded(isCurrentOdd);
+        let activeList = getListWithReversedRowsIfNeeded(true);
 
         activeList.forEach((row) => {
             totalBigha += parseFloat(row.bigha) || 0;
             totalAmountVal += parseFloat(row.amount) || 0;
             
             let rawExtra = parseFloat(row.extraMinutes) || 0;
-            if (isCurrentOdd || row.isLocked) {
-                totalExtraMinutes += rawExtra;
-            }
+            totalExtraMinutes += rawExtra;
         });
 
         let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
@@ -865,7 +866,7 @@
         let startStr = document.getElementById('startTime').value.trim();
         let lastEndTimeFormatted = '-';
 
-        let rowMinutesList = getCustomCalculatedMinutes(activeList, isCurrentOdd);
+        let rowMinutesList = getCustomCalculatedMinutes(activeList, true);
         let totalMinutesCalc = rowMinutesList.reduce((sum, v) => sum + v, 0);
 
         let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
@@ -941,9 +942,8 @@
 
         let cumulativeMinutes = 0;
         let startStr = document.getElementById('startTime').value.trim();
-        let isCurrentOdd = (selectedMode === "oddeven") ? (currentOrder === "straight") : (currentOrder === "straight");
-        let activeList = getListWithReversedRowsIfNeeded(isCurrentOdd);
-        let rowMinutesList = getCustomCalculatedMinutes(activeList, isCurrentOdd);
+        let activeList = getListWithReversedRowsIfNeeded(true);
+        let rowMinutesList = getCustomCalculatedMinutes(activeList, true);
 
         let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
         let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
@@ -981,18 +981,14 @@
             let isLocked = row.isLocked !== undefined ? row.isLocked : false;
             let rawExtra = (row.extraMinutes === "" || row.extraMinutes === null || row.extraMinutes === undefined) ? "" : row.extraMinutes;
             
-            // अनलॉक्ड होने पर उल्टे क्रम में अतिरिक्त समय 0 (खाली) दिखेगा, लॉक होने पर दोनों जगह दिखेगा
             let displayExtra = rawExtra;
-            if (!isCurrentOdd && !isLocked) {
-                displayExtra = "";
-            }
             
             let currentSpecial = 0;
             if (selectedMode === "oddeven") {
-                if (isCurrentOdd) {
+                if (currentOrder === "straight") {
                     if (idx === 0) currentSpecial = oddF;
                     else if (idx === totalLen - 1) currentSpecial = oddL;
-                } else { 
+                } else {
                     if (idx === 0) currentSpecial = evenF;
                     else if (idx === totalLen - 1) currentSpecial = evenL;
                 }
@@ -1166,9 +1162,9 @@
         box.style.display = box.style.display === 'block' ? 'none' : 'block';
     }
 
-    function getUserSlotData(userIndex, isOddMode) {
-        let rows = getListWithReversedRowsIfNeeded(isOddMode);
-        let rowMinutesList = getCustomCalculatedMinutes(rows, isOddMode);
+    function getUserSlotData(userIndex, isFirstCycle) {
+        let rows = getListWithReversedRowsIfNeeded(isFirstCycle);
+        let rowMinutesList = getCustomCalculatedMinutes(rows, isFirstCycle);
         let startStr = document.getElementById('startTime').value.trim();
 
         let targetName = initialData[userIndex].name;
@@ -1197,25 +1193,28 @@
         }
 
         let user = initialData[selIdx];
-        let oddSlot = getUserSlotData(selIdx, true);
-        let evenSlot = getUserSlotData(selIdx, false);
+        let firstSlot = getUserSlotData(selIdx, true);
+        let secondSlot = getUserSlotData(selIdx, false);
 
-        let sTime = oddSlot.start;
-        let eTime = oddSlot.end;
-        let userMinutes = oddSlot.minutes;
+        let sTime = firstSlot.start;
+        let eTime = firstSlot.end;
+        let userMinutes = firstSlot.minutes;
 
-        let nextCycleStartTime = evenSlot.start;
-        let nextCycleEndTime = evenSlot.end;
+        let nextCycleStartTime = secondSlot.start;
+        let nextCycleEndTime = secondSlot.end;
 
         let hPart = Math.floor(userMinutes / 60);
         let mPart = Math.round(userMinutes % 60);
 
         let duesHtml = (user.amount && user.amount > 0) ? `<div class="due-msg">धनराशि: ₹${user.amount} (जमा तारीख: ${user.date || 'नियत नहीं'})</div>` : '';
 
+        let label1 = (currentOrder === "straight") ? "पहली बारी (Odd)" : "पहली बारी (Even)";
+        let label2 = (currentOrder === "straight") ? "अगली बारी (Even)" : "अगली बारी (Odd)";
+
         resBox.innerHTML = `
             <b>👤 नाम:</b> ${user.name}<br>
-            <b>⏰ पहली बारी (Odd):</b> <span style="color:#1a5276; font-weight:bold;">${sTime} से ${eTime}</span> (${hPart} घंटे ${mPart} मिनट)<br>
-            <b>🔄 अगली बारी (Even):</b> <span style="color:#c0392b; font-weight:bold;">${nextCycleStartTime} से ${nextCycleEndTime}</span>
+            <b>⏰ ${label1}:</b> <span style="color:#1a5276; font-weight:bold;">${sTime} से ${eTime}</span> (${hPart} घंटे ${mPart} मिनट)<br>
+            <b>🔄 ${label2}:</b> <span style="color:#c0392b; font-weight:bold;">${nextCycleStartTime} से ${nextCycleEndTime}</span>
             ${duesHtml}
         `;
         printBtn.style.display = 'block';
@@ -1223,16 +1222,16 @@
 
     function getFormattedSlipHTML(userIndex) {
         let user = initialData[userIndex];
-        let oddSlot = getUserSlotData(userIndex, true);
-        let evenSlot = getUserSlotData(userIndex, false);
+        let firstSlot = getUserSlotData(userIndex, true);
+        let secondSlot = getUserSlotData(userIndex, false);
 
-        let sTime = oddSlot.start;
-        let eTime = oddSlot.end;
-        let userMinutes = oddSlot.minutes;
+        let sTime = firstSlot.start;
+        let eTime = firstSlot.end;
+        let userMinutes = firstSlot.minutes;
 
-        let nextCycleStartTime = evenSlot.start;
-        let nextCycleEndTime = evenSlot.end;
-        let evenMinutes = evenSlot.minutes;
+        let nextCycleStartTime = secondSlot.start;
+        let nextCycleEndTime = secondSlot.end;
+        let evenMinutes = secondSlot.minutes;
 
         let hPart = Math.floor(userMinutes / 60);
         let mPart = Math.round(userMinutes % 60);
@@ -1259,19 +1258,25 @@
             let oddDates = waterDates.filter((_, idx) => idx % 2 === 0).join(', ');
             let evenDates = waterDates.filter((_, idx) => idx % 2 !== 0).join(', ');
 
+            let title1 = (currentOrder === "straight") ? "1. पहली बारी (Odd)" : "1. पहली बारी (Even)";
+            let title2 = (currentOrder === "straight") ? "2. अगली बारी (Even)" : "2. अगली बारी (Odd)";
+
+            let date1 = (currentOrder === "straight") ? oddDates : evenDates;
+            let date2 = (currentOrder === "straight") ? evenDates : oddDates;
+
             return `
             <div class="slip-box">
                 <div class="slip-header-title">💧 सिंचाई पर्ची (औड-इवन) 💧</div>
                 
-                <div class="slip-section-title">1. नाम: ${user.name}</div>
-                <div class="slip-field"><b>बारी तारीख:</b> ${oddDates || 'निर्दिष्ट नहीं'}</div>
+                <div class="slip-section-title">${title1} - नाम: ${user.name}</div>
+                <div class="slip-field"><b>बारी तारीख:</b> ${date1 || 'निर्दिष्ट नहीं'}</div>
                 <div class="slip-field"><b>समय:</b> <span class="slip-time-txt">${sTime} से ${eTime}</span></div>
                 <div class="slip-field"><b>अवधि:</b> ${hPart} घंटे ${mPart} मिनट</div>
 
                 <div class="slip-divider"></div>
 
-                <div class="slip-section-title">2. नाम: ${user.name}</div>
-                <div class="slip-field"><b>बारी तारीख:</b> ${evenDates || 'निर्दिष्ट नहीं'}</div>
+                <div class="slip-section-title">${title2} - नाम: ${user.name}</div>
+                <div class="slip-field"><b>बारी तारीख:</b> ${date2 || 'निर्दिष्ट नहीं'}</div>
                 <div class="slip-field"><b>समय:</b> <span class="slip-even-time">${nextCycleStartTime} से ${nextCycleEndTime}</span></div>
                 <div class="slip-field"><b>अवधि:</b> ${evenHPart} घंटे ${evenMPart} मिनट</div>
                 ${duesSlipHtml}
