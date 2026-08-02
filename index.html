@@ -620,27 +620,29 @@
         input.type = input.type === 'password' ? 'text' : 'password';
     }
 
-    function openAdminModal() {
-        if(isAdmin) {
-            isAdmin = false;
-            alert("व्यू मोड चालू। (एडमिन एडिट बंद)");
-            renderTable();
-        } else {
-            let passInput = document.getElementById('adminPassInput');
-            passInput.value = '';
-            document.getElementById('adminModal').style.display = 'flex';
-            setTimeout(() => passInput.focus(), 100);
-        }
+    // 1. एडमिन मोडल ओपन/क्लोज फ़ंक्शन
+function openAdminModal() {
+    if(isAdmin) {
+        isAdmin = false;
+        alert("व्यू मोड चालू। (एडमिन एडिट बंद)");
+        renderTable();
+    } else {
+        let passInput = document.getElementById('adminPassInput');
+        if(passInput) passInput.value = '';
+        let modal = document.getElementById('adminModal');
+        if(modal) modal.style.display = 'flex';
+        setTimeout(() => { if(passInput) passInput.focus(); }, 100);
     }
+}
 
-    function closeAdminModal() {
-        document.getElementById('adminModal').style.display = 'none';
-    }
+function closeAdminModal() {
+    let modal = document.getElementById('adminModal');
+    if(modal) modal.style.display = 'none';
+}
 
-    // 1. एडमिन पासवर्ड वेरिफिकेशन फ़ंक्शन
-// 1. एडमिन पासवर्ड वेरिफिकेशन फ़ंक्शन
 function verifyAdminPassword() {
-    let pass = document.getElementById('adminPassInput').value.trim();
+    let passInput = document.getElementById('adminPassInput');
+    let pass = passInput ? passInput.value.trim() : '';
     let curPass = String(adminPassword).trim();
     let localPass = localStorage.getItem('ADMIN_PASS') || curPass;
 
@@ -654,17 +656,33 @@ function verifyAdminPassword() {
     }
 }
 
-// 2. नया पासवर्ड बदलने और सेव करने का फ़ंक्शन
+// 2. पासवर्ड बदलें मोडल ओपन/क्लोज फ़ंक्शन (यह मिस हो गया था)
+function openChangePassModal() {
+    let oldIn = document.getElementById('oldPassInput');
+    let newIn = document.getElementById('newPassInput');
+    if(oldIn) oldIn.value = '';
+    if(newIn) newIn.value = '';
+    let modal = document.getElementById('changePassModal');
+    if(modal) modal.style.display = 'flex';
+}
+
+function closeChangePassModal() {
+    let modal = document.getElementById('changePassModal');
+    if(modal) modal.style.display = 'none';
+}
+
 function submitNewPassword() {
-    let oldP = document.getElementById('oldPassInput').value.trim();
-    let newP = document.getElementById('newPassInput').value.trim();
+    let oldIn = document.getElementById('oldPassInput');
+    let newIn = document.getElementById('newPassInput');
+    let oldP = oldIn ? oldIn.value.trim() : '';
+    let newP = newIn ? newIn.value.trim() : '';
     let curPass = String(adminPassword).trim();
     let localPass = localStorage.getItem('ADMIN_PASS') || curPass;
 
     if(oldP === curPass || oldP === localPass || oldP === "2050") {
         if(newP && newP !== "") {
             adminPassword = newP;
-            localStorage.setItem('ADMIN_PASS', newP); // नया पासवर्ड तुरंत लोकल मेमोरी में लॉक
+            localStorage.setItem('ADMIN_PASS', newP); // नया पासवर्ड लोकल मेमोरी में लॉक
             closeChangePassModal();
             alert("✅ पासवर्ड सफलतापूर्वक बदल दिया गया है! नया पासवर्ड: " + newP);
             markDataDirty();
@@ -688,7 +706,6 @@ function applyLoadedRecord(record) {
         }));
     }
     
-    // यदि लोकल में नया पासवर्ड है तो वही रहेगा
     let savedPass = localStorage.getItem('ADMIN_PASS');
     if (savedPass) {
         adminPassword = savedPass;
@@ -779,16 +796,13 @@ async function saveDataToCloud() {
 
     let jsonStr = JSON.stringify(payload);
 
-    // 1. ब्राउज़र लोकल मेमोरी में तुरंत लॉक्ड सेव
     try {
         localStorage.setItem('WATER_SCHEDULE_DATA', jsonStr);
     } catch(e) {}
 
-    // 2. गूगल शीट में 100% ट्रांसफर फ़ॉर्मेट
     try {
         setSaveStatus('⚡ सेव हो रहा है...', true);
 
-        // फॉर्म डेटा पैरामीटर फ़ॉर्मेट (जो गूगल ऐप्स स्क्रिप्ट के लिए सबसे भरोसेमंद है)
         let formBody = new URLSearchParams();
         formBody.append("data", jsonStr);
         formBody.append("password", activePass);
