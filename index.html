@@ -638,6 +638,7 @@
     }
 
     // 1. एडमिन पासवर्ड वेरिफिकेशन फ़ंक्शन
+// 1. एडमिन पासवर्ड वेरिफिकेशन फ़ंक्शन
 function verifyAdminPassword() {
     let pass = document.getElementById('adminPassInput').value.trim();
     let curPass = String(adminPassword).trim();
@@ -805,7 +806,6 @@ async function saveDataToCloud() {
         setSaveStatus('✅ लोकल में सुरक्षित सेव्ड!', false);
     }
 }
-
     function calculateAll() {
         renderTable();
         populateUserDropdown();
