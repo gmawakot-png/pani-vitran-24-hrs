@@ -469,7 +469,7 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGX4qcOCPkZT7bAx4sSZlnr-GCGisVcBp-3vVcRK3oMCfEyUUyk7N55lJh6OOQFVbcsg/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrOp6bsXCCVw0DUnkQst5MMlK2IYw2bzImD8gPj34Aqsxc4aBFVyXNA7Yni233shpILQ/exec";
 
     let isAdmin = false;
     let adminPassword = "2050"; 
@@ -738,37 +738,44 @@
         if(record.evenLastMin !== undefined && document.getElementById('evenLastMin')) document.getElementById('evenLastMin').value = record.evenLastMin;
     }
 
-    async function loadDataFromCloud() {
-        try {
-            let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
-            if (localRaw) {
-                let localRecord = JSON.parse(localRaw);
-                applyLoadedRecord(localRecord);
+    // मोबाइल के लिए 100% सेफ़ डेटा लोड फ़ंक्शन
+async function loadDataFromCloud() {
+    try {
+        let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+        let res = await fetch(cacheBustUrl, { 
+            method: 'GET',
+            cache: 'no-store',
+            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
+
+        if (res.ok) {
+            let rawText = await res.text();
+            let record = null;
+            try {
+                record = JSON.parse(rawText);
+                if (typeof record === 'string') record = JSON.parse(record);
+            } catch(err) {}
+
+            if (record && (record.users || record.startDate)) {
+                applyLoadedRecord(record);
+                localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
                 syncCustomMinutesToTable();
                 calculateAll();
+                return;
             }
-        } catch(e) {}
+        }
+    } catch(e) {}
 
-        try {
-            let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
-            let res = await fetch(cacheBustUrl, { 
-                method: 'GET',
-                cache: 'no-store',
-                headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-            });
-
-            if (res.ok) {
-                let record = await res.json();
-                if (record && (record.users || record.startDate)) {
-                    applyLoadedRecord(record);
-                    localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
-                    syncCustomMinutesToTable();
-                    calculateAll();
-                }
-            }
-        } catch(e) {}
-    }
-
+    try {
+        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
+        if (localRaw) {
+            let localRecord = JSON.parse(localRaw);
+            applyLoadedRecord(localRecord);
+            syncCustomMinutesToTable();
+            calculateAll();
+        }
+    } catch(e) {}
+}
     async function saveDataToCloud() {
         let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword);
 
