@@ -640,13 +640,13 @@ function closeAdminModal() {
     if(modal) modal.style.display = 'none';
 }
 
+// 1. केवल नया पासवर्ड ही काम करेगा (पुराना पूरी तरह हट गया)
 function verifyAdminPassword() {
     let passInput = document.getElementById('adminPassInput');
     let pass = passInput ? passInput.value.trim() : '';
-    let curPass = String(adminPassword).trim();
-    let localPass = localStorage.getItem('ADMIN_PASS') || curPass;
+    let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword).trim();
 
-    if(pass === curPass || pass === localPass || pass === "2050") {
+    if(pass === activePass) {
         isAdmin = true;
         closeAdminModal();
         alert("एडमिन मोड चालू हो गया है!");
@@ -656,35 +656,20 @@ function verifyAdminPassword() {
     }
 }
 
-// 2. पासवर्ड बदलें मोडल ओपन/क्लोज फ़ंक्शन (यह मिस हो गया था)
-function openChangePassModal() {
-    let oldIn = document.getElementById('oldPassInput');
-    let newIn = document.getElementById('newPassInput');
-    if(oldIn) oldIn.value = '';
-    if(newIn) newIn.value = '';
-    let modal = document.getElementById('changePassModal');
-    if(modal) modal.style.display = 'flex';
-}
-
-function closeChangePassModal() {
-    let modal = document.getElementById('changePassModal');
-    if(modal) modal.style.display = 'none';
-}
-
+// 2. नया पासवर्ड बदलने पर पुराना पूरी तरह मिट जाएगा
 function submitNewPassword() {
     let oldIn = document.getElementById('oldPassInput');
     let newIn = document.getElementById('newPassInput');
     let oldP = oldIn ? oldIn.value.trim() : '';
     let newP = newIn ? newIn.value.trim() : '';
-    let curPass = String(adminPassword).trim();
-    let localPass = localStorage.getItem('ADMIN_PASS') || curPass;
+    let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword).trim();
 
-    if(oldP === curPass || oldP === localPass || oldP === "2050") {
+    if(oldP === activePass) {
         if(newP && newP !== "") {
             adminPassword = newP;
-            localStorage.setItem('ADMIN_PASS', newP); // नया पासवर्ड लोकल मेमोरी में लॉक
+            localStorage.setItem('ADMIN_PASS', newP); // केवल नया पासवर्ड ही सहेजा जाएगा
             closeChangePassModal();
-            alert("✅ पासवर्ड सफलतापूर्वक बदल दिया गया है! नया पासवर्ड: " + newP);
+            alert("✅ नया पासवर्ड लागू हो गया है! पुराना पासवर्ड अब काम नहीं करेगा।");
             markDataDirty();
         } else {
             alert("कृपया नया पासवर्ड दर्ज करें!");
@@ -706,6 +691,7 @@ function applyLoadedRecord(record) {
         }));
     }
     
+    // केवल लोकल मेमोरी का नया पासवर्ड ही मान्य रहेगा
     let savedPass = localStorage.getItem('ADMIN_PASS');
     if (savedPass) {
         adminPassword = savedPass;
@@ -743,7 +729,7 @@ function applyLoadedRecord(record) {
     if(record.evenLastMin !== undefined && document.getElementById('evenLastMin')) document.getElementById('evenLastMin').value = record.evenLastMin;
 }
 
-// 4. क्लाउड व लोकल से डेटा लोड फ़ंक्शन
+// 4. मोबाइल पर सुपरफ़ास्ट लाइव डेटा खींचने का फ़ंक्शन
 async function loadDataFromCloud() {
     try {
         let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
@@ -754,23 +740,26 @@ async function loadDataFromCloud() {
     } catch(e) {}
 
     try {
-        let res = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
+        let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+        let res = await fetch(cacheBustUrl, { 
+            method: 'GET',
+            cache: 'no-store',
+            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
+
         if (res.ok) {
             let record = await res.json();
             if (record && (record.users || record.startDate)) {
                 applyLoadedRecord(record);
                 localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
+                syncCustomMinutesToTable();
+                calculateAll();
             }
         }
-    } catch(e) {
-        console.error("गूगल शीट लोड त्रुटि, लोकल डेटा सक्रिय है:", e);
-    }
-
-    syncCustomMinutesToTable();
-    calculateAll();
+    } catch(e) {}
 }
 
-// 5. गूगल शीट व लोकल में 100% पक्का सेव फ़ंक्शन
+// 5. गूगल शीट व सर्वर्स पर तुरंत डेटा भेजने का फ़ंक्शन
 async function saveDataToCloud() {
     let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword);
 
@@ -820,6 +809,13 @@ async function saveDataToCloud() {
         setSaveStatus('✅ लोकल में सुरक्षित सेव्ड!', false);
     }
 }
+
+// मोबाइल Chrome पर हर 2 सेकंड में सुपरफ़ास्ट लाइव अपडेट चेक (Real-time Live Sync)
+setInterval(() => {
+    if (!isAdmin) {
+        loadDataFromCloud();
+    }
+}, 2000);
     function calculateAll() {
         renderTable();
         populateUserDropdown();
