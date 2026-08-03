@@ -708,14 +708,18 @@
             adminPassword = String(record.password);
         }
 
-        if(record.notice) {
+        if(record.notice !== undefined) {
             noticeMessage = record.notice;
-            if(document.getElementById('noticeInput')) document.getElementById('noticeInput').value = noticeMessage;
+            if(document.getElementById('noticeInput') && document.activeElement !== document.getElementById('noticeInput')) {
+                document.getElementById('noticeInput').value = noticeMessage;
+            }
             updateNoticeText(noticeMessage);
         }
-        if(record.bottomNotice) {
+        if(record.bottomNotice !== undefined) {
             bottomNoticeMessage = record.bottomNotice;
-            if(document.getElementById('bottomNoticeInput')) document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
+            if(document.getElementById('bottomNoticeInput') && document.activeElement !== document.getElementById('bottomNoticeInput')) {
+                document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
+            }
             updateBottomNoticeText(bottomNoticeMessage);
         }
         if(record.isTablePublic !== undefined) isTablePublic = record.isTablePublic;
@@ -725,57 +729,68 @@
             let radios = document.getElementsByName('waterDistributionMode');
             radios.forEach(r => { if(r.value === selectedMode) r.checked = true; });
         }
-        if(record.startDate && document.getElementById('startDateInput')) document.getElementById('startDateInput').value = record.startDate;
-        if(record.gapDays && document.getElementById('intervalInput')) document.getElementById('intervalInput').value = record.gapDays;
-        if(record.totalPoolHours !== undefined && document.getElementById('totalPoolHours')) document.getElementById('totalPoolHours').value = record.totalPoolHours;
-        if(record.hoursToDistribute !== undefined && document.getElementById('hoursToDistribute')) document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
-        if(record.startTime !== undefined && document.getElementById('startTime')) document.getElementById('startTime').value = record.startTime;
+        if(record.startDate && document.getElementById('startDateInput') && document.activeElement !== document.getElementById('startDateInput')) {
+            document.getElementById('startDateInput').value = record.startDate;
+        }
+        if(record.gapDays && document.getElementById('intervalInput') && document.activeElement !== document.getElementById('intervalInput')) {
+            document.getElementById('intervalInput').value = record.gapDays;
+        }
+        if(record.totalPoolHours !== undefined && document.getElementById('totalPoolHours') && document.activeElement !== document.getElementById('totalPoolHours')) {
+            document.getElementById('totalPoolHours').value = record.totalPoolHours;
+        }
+        if(record.hoursToDistribute !== undefined && document.getElementById('hoursToDistribute') && document.activeElement !== document.getElementById('hoursToDistribute')) {
+            document.getElementById('hoursToDistribute').value = record.hoursToDistribute;
+        }
+        if(record.startTime !== undefined && document.getElementById('startTime') && document.activeElement !== document.getElementById('startTime')) {
+            document.getElementById('startTime').value = record.startTime;
+        }
         if(record.currentOrder) currentOrder = record.currentOrder;
         
-        if(record.oddFirstMin !== undefined && document.getElementById('oddFirstMin')) document.getElementById('oddFirstMin').value = record.oddFirstMin;
-        if(record.oddLastMin !== undefined && document.getElementById('oddLastMin')) document.getElementById('oddLastMin').value = record.oddLastMin;
-        if(record.evenFirstMin !== undefined && document.getElementById('evenFirstMin')) document.getElementById('evenFirstMin').value = record.evenFirstMin;
-        if(record.evenLastMin !== undefined && document.getElementById('evenLastMin')) document.getElementById('evenLastMin').value = record.evenLastMin;
+        if(record.oddFirstMin !== undefined && document.getElementById('oddFirstMin') && document.activeElement !== document.getElementById('oddFirstMin')) document.getElementById('oddFirstMin').value = record.oddFirstMin;
+        if(record.oddLastMin !== undefined && document.getElementById('oddLastMin') && document.activeElement !== document.getElementById('oddLastMin')) document.getElementById('oddLastMin').value = record.oddLastMin;
+        if(record.evenFirstMin !== undefined && document.getElementById('evenFirstMin') && document.activeElement !== document.getElementById('evenFirstMin')) document.getElementById('evenFirstMin').value = record.evenFirstMin;
+        if(record.evenLastMin !== undefined && document.getElementById('evenLastMin') && document.activeElement !== document.getElementById('evenLastMin')) document.getElementById('evenLastMin').value = record.evenLastMin;
     }
 
-    // मोबाइल के लिए 100% सेफ़ डेटा लोड फ़ंक्शन
-async function loadDataFromCloud() {
-    try {
-        let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
-        let res = await fetch(cacheBustUrl, { 
-            method: 'GET',
-            cache: 'no-store',
-            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-        });
+    // मोबाइल और कंप्यूटर के बीच 0 सेकंड सिंकिंग लोड फ़ंक्शन
+    async function loadDataFromCloud() {
+        try {
+            let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+            let res = await fetch(cacheBustUrl, { 
+                method: 'GET',
+                cache: 'no-store',
+                headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+            });
 
-        if (res.ok) {
-            let rawText = await res.text();
-            let record = null;
-            try {
-                record = JSON.parse(rawText);
-                if (typeof record === 'string') record = JSON.parse(record);
-            } catch(err) {}
+            if (res.ok) {
+                let rawText = await res.text();
+                let record = null;
+                try {
+                    record = JSON.parse(rawText);
+                    if (typeof record === 'string') record = JSON.parse(record);
+                } catch(err) {}
 
-            if (record && (record.users || record.startDate)) {
-                applyLoadedRecord(record);
-                localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
+                if (record && (record.users || record.startDate)) {
+                    applyLoadedRecord(record);
+                    localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
+                    syncCustomMinutesToTable();
+                    calculateAll();
+                    return;
+                }
+            }
+        } catch(e) {}
+
+        try {
+            let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
+            if (localRaw) {
+                let localRecord = JSON.parse(localRaw);
+                applyLoadedRecord(localRecord);
                 syncCustomMinutesToTable();
                 calculateAll();
-                return;
             }
-        }
-    } catch(e) {}
+        } catch(e) {}
+    }
 
-    try {
-        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
-        if (localRaw) {
-            let localRecord = JSON.parse(localRaw);
-            applyLoadedRecord(localRecord);
-            syncCustomMinutesToTable();
-            calculateAll();
-        }
-    } catch(e) {}
-}
     async function saveDataToCloud() {
         let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword);
 
@@ -822,11 +837,12 @@ async function loadDataFromCloud() {
         }
     }
 
+    // ऑटो-सिंक टाइमर को 0.5 सेकंड (500 मिलीसेकंड) किया गया है ताकि मोबाइल में तुरंत दिखे
     setInterval(() => {
         if (!isAdmin) {
             loadDataFromCloud();
         }
-    }, 3000);
+    }, 500);
 
     function calculateAll() {
         renderTable();
@@ -836,6 +852,7 @@ async function loadDataFromCloud() {
 
     function populateUserDropdown() {
         let select = document.getElementById('userSelect');
+        let currentSelectedVal = select.value;
         select.innerHTML = '<option value="">-- नाम चुनें --</option>';
         initialData.forEach((row, idx) => {
             let opt = document.createElement('option');
@@ -843,8 +860,7 @@ async function loadDataFromCloud() {
             opt.text = row.name; 
             select.appendChild(opt);
         });
-        document.getElementById('turnResult').innerHTML = "कृपया नाम चुनें: बॉक्स में क्लिक करें 👆";
-        document.getElementById('printSlipBtn').style.display = 'none';
+        select.value = currentSelectedVal;
     }
 
     function getListWithReversedRowsIfNeeded(isFirstCycle) {
