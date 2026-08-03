@@ -731,14 +731,7 @@ function applyLoadedRecord(record) {
 
 // 4. मोबाइल पर सुपरफ़ास्ट लाइव डेटा खींचने का फ़ंक्शन
 async function loadDataFromCloud() {
-    try {
-        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
-        if (localRaw) {
-            let localRecord = JSON.parse(localRaw);
-            applyLoadedRecord(localRecord);
-        }
-    } catch(e) {}
-
+    // 1. सबसे पहले गूगल क्लाउड से ताज़ा डेटा खींचना (1st Priority)
     try {
         let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
         let res = await fetch(cacheBustUrl, { 
@@ -754,7 +747,21 @@ async function loadDataFromCloud() {
                 localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
                 syncCustomMinutesToTable();
                 calculateAll();
+                return; // ताज़ा डेटा मिल गया!
             }
+        }
+    } catch(e) {
+        console.error("गूगल लोड त्रुटि:", e);
+    }
+
+    // 2. यदि इंटरनेट बंद/धीमा हो, केवल तभी लोकल मेमोरी का उपयोग करें
+    try {
+        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
+        if (localRaw) {
+            let localRecord = JSON.parse(localRaw);
+            applyLoadedRecord(localRecord);
+            syncCustomMinutesToTable();
+            calculateAll();
         }
     } catch(e) {}
 }
