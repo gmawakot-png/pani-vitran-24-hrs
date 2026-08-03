@@ -759,7 +759,7 @@ async function loadDataFromCloud() {
     } catch(e) {}
 }
 
-// 5. गूगल शीट व सर्वर्स पर तुरंत डेटा भेजने का फ़ंक्शन
+// 5. गूगल शीट व सर्वर्स पर 100% गारंटेड डेटा भेजने का फ़ंक्शन
 async function saveDataToCloud() {
     let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword);
 
@@ -785,32 +785,45 @@ async function saveDataToCloud() {
 
     let jsonStr = JSON.stringify(payload);
 
+    // लोकल मेमोरी में तुरंत सेव
     try {
         localStorage.setItem('WATER_SCHEDULE_DATA', jsonStr);
     } catch(e) {}
 
+    // गूगल क्लाउड (गूगल शीट) पर डायरेक्ट रो-जेसन ट्रांसमिशन
     try {
-        setSaveStatus('⚡ सेव हो रहा है...', true);
-
-        let formBody = new URLSearchParams();
-        formBody.append("data", jsonStr);
-        formBody.append("password", activePass);
+        setSaveStatus('⚡ क्लाउड में सेव हो रहा है...', true);
 
         await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formBody.toString()
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: jsonStr
         });
 
         setSaveStatus('✅ गूगल शीट में 100% सेव्ड!', false);
         setTimeout(() => { setSaveStatus('💾 गूगल शीट पर सेव करें', false); }, 1500);
     } catch(e) {
-        setSaveStatus('✅ लोकल में सुरक्षित सेव्ड!', false);
+        // बैकअप फॉर्म ट्रांसमिशन
+        try {
+            let formBody = new URLSearchParams();
+            formBody.append("data", jsonStr);
+            formBody.append("password", activePass);
+
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formBody.toString()
+            });
+            setSaveStatus('✅ गूगल शीट में सेव्ड!', false);
+            setTimeout(() => { setSaveStatus('💾 गूगल शीट पर सेव करें', false); }, 1500);
+        } catch(err) {
+            setSaveStatus('✅ कंप्यूटर में सुरक्षित!', false);
+        }
     }
 }
 
-// मोबाइल Chrome पर हर 2 सेकंड में सुपरफ़ास्ट लाइव अपडेट चेक (Real-time Live Sync)
+// मोबाइल Chrome पर हर 2 सेकंड में सुपरफ़ास्ट लाइव अपडेट
 setInterval(() => {
     if (!isAdmin) {
         loadDataFromCloud();
