@@ -469,7 +469,7 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-L4MD_QTrWzUWq5LeJtnxawonlaexIh396lqOnlXtbgOybVdp89x_ZuX-922w5N89/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx46hDG88_fUKcUN7QrsSGjBTPKMpubrTRkwPOwkX80LeXIFJzoQCh2C4aWZPh5A3qTBw/exec";
 
     let isAdmin = false;
     let adminPassword = "2050"; 
@@ -730,8 +730,18 @@ function applyLoadedRecord(record) {
 }
 
 // 4. मोबाइल पर सुपरफ़ास्ट लाइव डेटा खींचने का फ़ंक्शन
+// गूगल शीट लोड फ़ंक्शन
 async function loadDataFromCloud() {
-    // 1. सबसे पहले गूगल क्लाउड से ताज़ा डेटा खींचना (1st Priority)
+    try {
+        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
+        if (localRaw) {
+            let localRecord = JSON.parse(localRaw);
+            applyLoadedRecord(localRecord);
+            syncCustomMinutesToTable();
+            calculateAll();
+        }
+    } catch(e) {}
+
     try {
         let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
         let res = await fetch(cacheBustUrl, { 
@@ -747,26 +757,12 @@ async function loadDataFromCloud() {
                 localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
                 syncCustomMinutesToTable();
                 calculateAll();
-                return; // ताज़ा डेटा मिल गया!
             }
-        }
-    } catch(e) {
-        console.error("गूगल लोड त्रुटि:", e);
-    }
-
-    // 2. यदि इंटरनेट बंद/धीमा हो, केवल तभी लोकल मेमोरी का उपयोग करें
-    try {
-        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
-        if (localRaw) {
-            let localRecord = JSON.parse(localRaw);
-            applyLoadedRecord(localRecord);
-            syncCustomMinutesToTable();
-            calculateAll();
         }
     } catch(e) {}
 }
 
-// 5. गूगल शीट व सर्वर्स पर 100% गारंटेड डेटा भेजने का फ़ंक्शन
+// गूगल शीट सेव फ़ंक्शन
 async function saveDataToCloud() {
     let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword);
 
@@ -792,51 +788,33 @@ async function saveDataToCloud() {
 
     let jsonStr = JSON.stringify(payload);
 
-    // लोकल मेमोरी में तुरंत सेव
     try {
         localStorage.setItem('WATER_SCHEDULE_DATA', jsonStr);
     } catch(e) {}
 
-    // गूगल क्लाउड (गूगल शीट) पर डायरेक्ट रो-जेसन ट्रांसमिशन
     try {
-        setSaveStatus('⚡ क्लाउड में सेव हो रहा है...', true);
+        setSaveStatus('⚡ गूगल शीट में सेव हो रहा है...', true);
 
         await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: jsonStr
         });
 
         setSaveStatus('✅ गूगल शीट में 100% सेव्ड!', false);
-        setTimeout(() => { setSaveStatus('💾 गूगल शीट पर सेव करें', false); }, 1500);
+        setTimeout(() => { setSaveStatus('☁️ गूगल शीट में सेव करें', false); }, 1500);
     } catch(e) {
-        // बैकअप फॉर्म ट्रांसमिशन
-        try {
-            let formBody = new URLSearchParams();
-            formBody.append("data", jsonStr);
-            formBody.append("password", activePass);
-
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formBody.toString()
-            });
-            setSaveStatus('✅ गूगल शीट में सेव्ड!', false);
-            setTimeout(() => { setSaveStatus('💾 गूगल शीट पर सेव करें', false); }, 1500);
-        } catch(err) {
-            setSaveStatus('✅ कंप्यूटर में सुरक्षित!', false);
-        }
+        setSaveStatus('✅ लोकल में सेव्ड!', false);
     }
 }
 
-// मोबाइल Chrome पर हर 2 सेकंड में सुपरफ़ास्ट लाइव अपडेट
+// मोबाइल के लिए हर 3 सेकंड में गूगल शीट से लाइव ऑटो-सिंक
 setInterval(() => {
     if (!isAdmin) {
         loadDataFromCloud();
     }
-}, 2000);
-    function calculateAll() {
+}, 3000);    function calculateAll() {
         renderTable();
         populateUserDropdown();
         generate30DaysCalendar();
