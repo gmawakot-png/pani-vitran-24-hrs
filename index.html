@@ -755,42 +755,18 @@
     // मोबाइल और कंप्यूटर के बीच 0 सेकंड सिंकिंग लोड फ़ंक्शन
     async function loadDataFromCloud() {
         try {
-            let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+            let uniqueId = 'cb=' + Math.random().toString(36.substring(2)) + '_' + Date.now();
+            let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + uniqueId;
             let res = await fetch(cacheBustUrl, { 
                 method: 'GET',
-                cache: 'no-store',
-                headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-            });
-
-            if (res.ok) {
-                let rawText = await res.text();
-                let record = null;
-                try {
-                    record = JSON.parse(rawText);
-                    if (typeof record === 'string') record = JSON.parse(record);
-                } catch(err) {}
-
-                if (record && (record.users || record.startDate)) {
-                    applyLoadedRecord(record);
-                    localStorage.setItem('WATER_SCHEDULE_DATA', JSON.stringify(record));
-                    syncCustomMinutesToTable();
-                    calculateAll();
-                    return;
+                mode: 'cors',
+                cache: 'reload',
+                headers: { 
+                    'Pragma': 'no-cache', 
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Expires': '0'
                 }
-            }
-        } catch(e) {}
-
-        try {
-            let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA');
-            if (localRaw) {
-                let localRecord = JSON.parse(localRaw);
-                applyLoadedRecord(localRecord);
-                syncCustomMinutesToTable();
-                calculateAll();
-            }
-        } catch(e) {}
-    }
-
+            });
     async function saveDataToCloud() {
         let activePass = localStorage.getItem('ADMIN_PASS') || String(adminPassword);
 
