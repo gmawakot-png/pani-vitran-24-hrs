@@ -785,12 +785,12 @@
             if (savedPass) adminPassword = savedPass;
         }
 
-        if(record.notice) {
+        if(record.notice !== undefined) {
             noticeMessage = record.notice;
             if(document.getElementById('noticeInput')) document.getElementById('noticeInput').value = noticeMessage;
             updateNoticeText(noticeMessage);
         }
-        if(record.bottomNotice) {
+        if(record.bottomNotice !== undefined) {
             bottomNoticeMessage = record.bottomNotice;
             if(document.getElementById('bottomNoticeInput')) document.getElementById('bottomNoticeInput').value = bottomNoticeMessage;
             updateBottomNoticeText(bottomNoticeMessage);
@@ -827,12 +827,13 @@
     }
 
     async function loadDataFromCloud() {
-        if (isUserEditingLocally && !isAdmin) return;
+        if (isUserEditingLocally && isAdmin) return;
 
         try {
-            let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+            let cacheBustUrl = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + '_nc=' + Date.now();
             let res = await fetch(cacheBustUrl, { 
                 method: 'GET',
+                redirect: 'follow',
                 cache: 'no-store'
             });
 
@@ -843,18 +844,7 @@
                     localStorage.setItem('WATER_SCHEDULE_DATA_GSHEET_24', JSON.stringify(record));
                     syncCustomMinutesToTable();
                     calculateAll();
-                    return;
                 }
-            }
-        } catch(e) {}
-
-        try {
-            let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA_GSHEET_24');
-            if (localRaw) {
-                let localRecord = JSON.parse(localRaw);
-                applyLoadedRecord(localRecord);
-                syncCustomMinutesToTable();
-                calculateAll();
             }
         } catch(e) {}
     }
@@ -913,8 +903,9 @@
         }
     }
 
+    // ऑटो बैकग्राउंड सिंक हर 4 सेकंड में
     setInterval(() => {
-        if (!isAdmin && !isUserEditingLocally) {
+        if (!isAdmin) {
             loadDataFromCloud();
         }
     }, 4000);
@@ -925,7 +916,7 @@
         generate30DaysCalendar();
     }
 
-    // सुरक्षित ड्रॉपडाउन फ़ंक्शन (नाम रीसेट न होने के लिए)
+    // सुरक्षित ड्रॉपडाउन फ़ंक्शन
     function populateUserDropdown() {
         let select = document.getElementById('userSelect');
         let currentSelectedValue = select.value; 
@@ -1518,7 +1509,7 @@
         window.print();
     }
 
-    // JPEG (फोटो) के रूप में पर्ची डाउनलोड करने का फ़ंक्शन
+    // JPEG डाउनलोड फ़ंक्शन
     function downloadRowSlip(idx) {
         let user = initialData[idx];
         let slipHtml = getFormattedSlipHTML(idx);
@@ -1558,7 +1549,7 @@
 
         if (window.html2canvas) {
             html2canvas(tempContainer, {
-                scale: 3, // HD क्वालिटी
+                scale: 3, 
                 useCORS: true,
                 backgroundColor: '#ffffff'
             }).then(canvas => {
@@ -1607,7 +1598,7 @@
         }
     }
 
-    // ⚡ स्क्रीन ग्लिच से बचने के लिए तुरंत लोकल कैश लोड
+    // तुरंत लोड और क्लाउड सिंक कॉल
     try {
         let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA_GSHEET_24');
         if (localRaw) {
@@ -1618,10 +1609,9 @@
     syncCustomMinutesToTable();
     calculateAll();
 
-    // इसके बाद बैकग्राउंड में सुरक्षित क्लाउड सिंक
-    window.onload = function() {
-        loadDataFromCloud();
-    };
+    // पेज लोड होते ही क्लाउड से ताज़ा डेटा लाएं
+    loadDataFromCloud();
+    window.addEventListener('load', loadDataFromCloud);
 </script>
 </body>
 </html>
