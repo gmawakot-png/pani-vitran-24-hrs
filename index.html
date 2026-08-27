@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -18,7 +18,7 @@
     <!-- JPEG/फोटो डाउनलोड लाइब्रेरी -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: #f4f7f6; margin: 0; padding: 10px; color: #333; padding-bottom: 100px; }
         .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
@@ -32,14 +32,14 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        .header-bar h2 { margin: 0; color: #1a5276; font-size: 20px; border: none; padding: 0; }
+        .header-bar h2 { margin: 0; color: #1a5276; font-size: 19px; border: none; padding: 0; }
         
         .live-clock-box {
             background: #1a5276;
             color: #fff;
             padding: 5px 12px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -183,9 +183,6 @@
             color: #2c3e50;
             line-height: 1;
         }
-        .interval-arrows-btn button:hover {
-            background: #d5dbdb;
-        }
 
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -327,7 +324,6 @@
                 <ol id="datesList" style="margin: 5px 0; padding-left: 20px;"></ol>
             </div>
             
-            <!-- सभी पर्चियां प्रिंट बटन -->
             <button class="btn-print-all" id="printAllSlipsBtnBox" onclick="printAllSlips()">🖨️ पूरे महीने की सभी पर्चियां प्रिंट करें (18 प्रति पेज)</button>
         </div>
 
@@ -524,13 +520,15 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw423KFyw9eUGMRxaInY1uXRbuVa1XNqhPyQIrVQ6i7LpHhBcBkvdpGDHmV7GYjVseAbw/exec";
+    // आपका नया लाइव Google Apps Script Web App URL
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCxQgSx9gFSgqbv0qYyp0UkIcbYC06mrLVIAQxXb1lZlkXUIo7Kvs3ak5-GYF-_Hfdbw/exec";
 
     let isAdmin = false;
     let isUserEditingLocally = false;
     let adminPassword = "2050"; 
     let noticeMessage = "";
     let bottomNoticeMessage = ""; 
+    let lastLoadedJsonString = ""; 
     
     // दृश्यता (Visibility) सेटिंग्स
     let isTablePublic = false; 
@@ -614,9 +612,15 @@
 
     function setSaveStatus(message, isBusy) {
         let btn = document.getElementById('floatingSaveBtn');
-        if (!btn) return;
-        btn.innerText = message;
-        btn.style.background = isBusy ? '#f39c12' : '#27ae60';
+        let btnMain = document.getElementById('saveBtnMain');
+        if (btn) {
+            btn.innerText = message;
+            btn.style.background = isBusy ? '#f39c12' : '#27ae60';
+        }
+        if (btnMain) {
+            btnMain.innerText = message;
+            btnMain.style.background = isBusy ? '#f39c12' : '#27ae60';
+        }
     }
 
     function markDataDirty() {
@@ -758,7 +762,7 @@
             if(newP && newP !== "") {
                 adminPassword = newP;
                 closeChangePassModal();
-                alert("✅ नया पासवर्ड लागू हो गया है! इसे क्लाउड में सुरक्षित किया जा रहा है...");
+                alert("✅ नया पासवर्ड लागू हो गया है!");
                 saveDataToCloud();
             } else {
                 alert("कृपया नया पासवर्ड दर्ज करें!");
@@ -837,15 +841,21 @@
 
             if (res.ok) {
                 let record = await res.json();
+                let currentStr = JSON.stringify(record);
+
+                // अगर डेटा नहीं बदला है, तो मोबाइल स्क्रीन को बेवजह रिफ्रेश न करें (ग्लिच खत्म)
+                if (currentStr === lastLoadedJsonString) {
+                    return; 
+                }
+                lastLoadedJsonString = currentStr;
+
                 if (record && (record.users || record.startDate || record.password)) {
                     applyLoadedRecord(record);
                     syncCustomMinutesToTable();
                     calculateAll();
                 }
             }
-        } catch(e) {
-            console.error("Cloud fetch error:", e);
-        }
+        } catch(e) {}
     }
 
     async function saveDataToCloud() {
@@ -878,9 +888,10 @@
         };
 
         let jsonStr = JSON.stringify(payload);
+        lastLoadedJsonString = jsonStr;
 
         try {
-            setSaveStatus('⚡ गूगल शीट में सेव हो रहा है...', true);
+            setSaveStatus('⚡ सेव हो रहा है...', true);
 
             await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
@@ -889,19 +900,19 @@
                 body: jsonStr
             });
 
-            setSaveStatus('✅ गूगल शीट में 100% सेव्ड!', false);
+            setSaveStatus('✅ 100% सेव्ड!', false);
             setTimeout(() => { setSaveStatus('☁️ गूगल शीट में सेव करें', false); }, 1500);
         } catch(e) {
             setSaveStatus('⚠️ सेव विफल!', false);
         }
     }
 
-    // ऑटो बैकग्राउंड सिंक हर 3 सेकंड में
+    // सुपरफास्ट ऑटो बैकग्राउंड सिंक हर 2 सेकंड में
     setInterval(() => {
         if (!isAdmin) {
             loadDataFromCloud();
         }
-    }, 3000);
+    }, 2000);
 
     function calculateAll() {
         renderTable();
@@ -909,10 +920,18 @@
         generate30DaysCalendar();
     }
 
-    // सुरक्षित ड्रॉपडाउन फ़ंक्शन
+    // ग्लिच-मुक्त ड्रॉपडाउन
     function populateUserDropdown() {
         let select = document.getElementById('userSelect');
         let currentSelectedValue = select.value; 
+
+        let existingNames = Array.from(select.options).slice(1).map(o => o.text);
+        let newNames = initialData.map(r => r.name);
+
+        if (JSON.stringify(existingNames) === JSON.stringify(newNames)) {
+            if (currentSelectedValue !== "") findMyTurn();
+            return;
+        }
 
         select.innerHTML = '<option value="">-- नाम चुनें --</option>';
         initialData.forEach((row, idx) => {
@@ -1591,7 +1610,7 @@
         }
     }
 
-    // प्रारंभिक सेटअप और क्लाउड लोड
+    // प्रारंभिक सेटअप और लोड
     syncCustomMinutesToTable();
     calculateAll();
     loadDataFromCloud();
