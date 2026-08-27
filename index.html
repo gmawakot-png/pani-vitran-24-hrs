@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>पानी सिंचाई वितरण सारणी</title>
 
-    <!-- Vercel से मुख्य GitHub Pages पर रीडायरेक्ट स्क्रिप्ट -->
+    <!-- Vercel से मुख्य GitHub Pages पर तुरंत रीडायरेक्ट स्क्रिप्ट -->
     <script>
         if (window.location.hostname.includes("vercel.app")) {
             window.location.replace("https://gmawakot-png.github.io/pani-vitran-24-hrs/");
@@ -295,12 +295,12 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; gap:8px;">
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">वर्तमान तारीख चुनें:</span>
-                        <input type="date" id="startDateInput" style="width:130px; padding:4px; font-size:12px; border:1px solid #27ae60; border-radius:4px; font-weight:bold;" oninput="generate30DaysCalendar(); markDataDirty();">
+                        <input type="date" id="startDateInput" style="width:130px; padding:4px; font-size:12px; border:1px solid #27ae60; border-radius:4px; font-weight:bold;" oninput="generate30DaysCalendar(); findMyTurn(); markDataDirty();">
                     </div>
                     <div>
                         <span style="font-size:11px; font-weight:bold; display:block;">दिन का गैप:</span>
                         <div class="interval-box-container">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" oninput="generate30DaysCalendar(); markDataDirty();">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="intervalInput" value="1" oninput="generate30DaysCalendar(); findMyTurn(); markDataDirty();">
                             <div class="interval-arrows-btn">
                                 <button type="button" onclick="adjustInterval(1)">▲</button>
                                 <button type="button" onclick="adjustInterval(-1)">▼</button>
@@ -556,6 +556,7 @@
     let debounceTimer;
     let currentOrder = "straight";
 
+    // हिंदी में संक्षिप्त माह
     const HINDI_MONTHS_SHORT = ["जन०", "फ़र०", "मार्च", "अप्रै०", "मई", "जून", "जुला०", "अग०", "सित०", "अक्टू०", "नव०", "दिस०"];
 
     function formatShortHindiDate(dateObj) {
@@ -665,6 +666,7 @@
         if(val < 1) val = 1;
         input.value = val;
         generate30DaysCalendar();
+        findMyTurn();
         markDataDirty();
     }
 
@@ -678,7 +680,6 @@
         document.getElementById('bottomNoticeDisplay').innerText = val.trim() !== "" ? val : "यहाँ महत्वपूर्ण सूचना प्रदर्शित होगी।";
     }
 
-    // विजिबिलिटी टॉगल फ़ंक्शन
     function toggleVisibility(key) {
         if (key === 'isTablePublic') isTablePublic = !isTablePublic;
         else if (key === 'isTableActionsPublic') isTableActionsPublic = !isTableActionsPublic;
@@ -698,6 +699,7 @@
         selectedMode = val;
         syncCustomMinutesToTable();
         renderTable();
+        findMyTurn();
         markDataDirty();
     }
 
@@ -716,6 +718,7 @@
 
         syncCustomMinutesToTable();
         calculateAll();
+        findMyTurn();
         markDataDirty();
     }
 
@@ -826,7 +829,6 @@
             updateBottomNoticeText(bottomNoticeMessage);
         }
 
-        // लोड विजिबिलिटी सेटिंग्स
         if(record.isTablePublic !== undefined) isTablePublic = record.isTablePublic;
         if(record.isTableActionsPublic !== undefined) isTableActionsPublic = record.isTableActionsPublic;
         if(record.isBottomNoticePublic !== undefined) isBottomNoticePublic = record.isBottomNoticePublic;
@@ -882,6 +884,7 @@
                     applyLoadedRecord(record);
                     syncCustomMinutesToTable();
                     calculateAll();
+                    findMyTurn();
                 }
             }
         } catch(e) {}
@@ -1335,6 +1338,7 @@
         initialData.splice(insertIndex, 0, newRow);
 
         calculateAll();
+        findMyTurn();
         markDataDirty();
     }
 
@@ -1342,6 +1346,7 @@
         if(confirm("क्या आप वाकई इस पंक्ति को हटाना चाहते हैं?")) {
             initialData.splice(idx, 1);
             calculateAll();
+            findMyTurn();
             markDataDirty();
         }
     }
@@ -1375,18 +1380,22 @@
         let startInput = document.getElementById('startDateInput').value;
         let interval = parseInt(document.getElementById('intervalInput').value) || 1;
         let listEl = document.getElementById('datesList');
-        listEl.innerHTML = '';
+        if(listEl) listEl.innerHTML = '';
         waterDates = [];
 
         if(!startInput) return;
-        let currentDate = new Date(startInput);
+        
+        let parts = startInput.split('-');
+        let currentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
 
         for(let i=0; i<30; i++) {
             let dStr = formatShortHindiDate(currentDate);
             waterDates.push(dStr);
-            let li = document.createElement('li');
-            li.innerText = `${i+1}. दिनांक: ${dStr}`;
-            listEl.appendChild(li);
+            if(listEl) {
+                let li = document.createElement('li');
+                li.innerText = `${i+1}. दिनांक: ${dStr}`;
+                listEl.appendChild(li);
+            }
             currentDate.setDate(currentDate.getDate() + interval);
         }
     }
