@@ -495,7 +495,7 @@
     <div class="modal-card">
         <h3>🔐 एडमिन पासवर्ड दर्ज करें</h3>
         <div class="pass-input-box">
-           <input type="text" id="adminPassInput" autocomplete="off" style="-webkit-text-security: disc;" placeholder="पासवर्ड लिखें" onkeydown="if(event.key==='Enter') verifyAdminPassword();">
+          <input type="password" id="adminPassInput" placeholder="पासवर्ड लिखें" onkeydown="if(event.key==='Enter') verifyAdminPassword();">
             <button type="button" onclick="togglePassVisibility('adminPassInput')">👁️</button>
         </div>
         <button class="btn-action" onclick="verifyAdminPassword()">लॉगिन करें</button>
