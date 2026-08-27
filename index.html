@@ -1652,6 +1652,18 @@
     }
 
     // प्रारंभिक सेटअप और लोड
+    // 0 सेकंड में तुरंत तारीख सेट करने का फ़ीचर
+    let dateInputEl = document.getElementById('startDateInput');
+    if (dateInputEl && !dateInputEl.value) {
+        let today = new Date();
+        let yyyy = today.getFullYear();
+        let mm = String(today.getMonth() + 1).padStart(2, '0');
+        let dd = String(today.getDate()).padStart(2, '0');
+        dateInputEl.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // प्रारंभिक सेटअप और लोड
+    generate30DaysCalendar();
     syncCustomMinutesToTable();
     calculateAll();
     loadDataFromCloud();
