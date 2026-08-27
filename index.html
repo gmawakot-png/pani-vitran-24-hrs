@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>पानी सिंचाई वितरण सारणी</title>
 
     <!-- Vercel से मुख्य GitHub Pages पर तुरंत 100% रीडायरेक्ट स्क्रिप्ट -->
@@ -713,7 +716,7 @@
     function verifyAdminPassword() {
         let passInput = document.getElementById('adminPassInput');
         let pass = passInput ? passInput.value.trim() : '';
-        let activePass = localStorage.getItem('ADMIN_PASS_GSHEET_24') || String(adminPassword).trim();
+        let activePass = String(adminPassword).trim();
 
         if(pass === activePass) {
             isAdmin = true;
@@ -749,14 +752,13 @@
         let newIn = document.getElementById('newPassInput');
         let oldP = oldIn ? oldIn.value.trim() : '';
         let newP = newIn ? newIn.value.trim() : '';
-        let activePass = localStorage.getItem('ADMIN_PASS_GSHEET_24') || String(adminPassword).trim();
+        let activePass = String(adminPassword).trim();
 
         if(oldP === activePass) {
             if(newP && newP !== "") {
                 adminPassword = newP;
-                localStorage.setItem('ADMIN_PASS_GSHEET_24', newP);
                 closeChangePassModal();
-                alert("✅ नया पासवर्ड लागू हो गया है!");
+                alert("✅ नया पासवर्ड लागू हो गया है! इसे क्लाउड में सुरक्षित किया जा रहा है...");
                 saveDataToCloud();
             } else {
                 alert("कृपया नया पासवर्ड दर्ज करें!");
@@ -778,11 +780,7 @@
         }
         
         if (record.password) {
-            adminPassword = String(record.password);
-            localStorage.setItem('ADMIN_PASS_GSHEET_24', adminPassword);
-        } else {
-            let savedPass = localStorage.getItem('ADMIN_PASS_GSHEET_24');
-            if (savedPass) adminPassword = savedPass;
+            adminPassword = String(record.password).trim();
         }
 
         if(record.notice !== undefined) {
@@ -839,21 +837,20 @@
 
             if (res.ok) {
                 let record = await res.json();
-                if (record && (record.users || record.startDate)) {
+                if (record && (record.users || record.startDate || record.password)) {
                     applyLoadedRecord(record);
-                    localStorage.setItem('WATER_SCHEDULE_DATA_GSHEET_24', JSON.stringify(record));
                     syncCustomMinutesToTable();
                     calculateAll();
                 }
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error("Cloud fetch error:", e);
+        }
     }
 
     async function saveDataToCloud() {
-        let activePass = localStorage.getItem('ADMIN_PASS_GSHEET_24') || String(adminPassword);
-
         let payload = {
-            password: activePass,
+            password: String(adminPassword).trim(),
             notice: noticeMessage || "",
             bottomNotice: bottomNoticeMessage || "",
             isTablePublic: isTablePublic,
@@ -883,10 +880,6 @@
         let jsonStr = JSON.stringify(payload);
 
         try {
-            localStorage.setItem('WATER_SCHEDULE_DATA_GSHEET_24', jsonStr);
-        } catch(e) {}
-
-        try {
             setSaveStatus('⚡ गूगल शीट में सेव हो रहा है...', true);
 
             await fetch(GOOGLE_SCRIPT_URL, {
@@ -899,16 +892,16 @@
             setSaveStatus('✅ गूगल शीट में 100% सेव्ड!', false);
             setTimeout(() => { setSaveStatus('☁️ गूगल शीट में सेव करें', false); }, 1500);
         } catch(e) {
-            setSaveStatus('✅ लोकल में सेव्ड!', false);
+            setSaveStatus('⚠️ सेव विफल!', false);
         }
     }
 
-    // ऑटो बैकग्राउंड सिंक हर 4 सेकंड में
+    // ऑटो बैकग्राउंड सिंक हर 3 सेकंड में
     setInterval(() => {
         if (!isAdmin) {
             loadDataFromCloud();
         }
-    }, 4000);
+    }, 3000);
 
     function calculateAll() {
         renderTable();
@@ -1598,20 +1591,10 @@
         }
     }
 
-    // तुरंत लोड और क्लाउड सिंक कॉल
-    try {
-        let localRaw = localStorage.getItem('WATER_SCHEDULE_DATA_GSHEET_24');
-        if (localRaw) {
-            let localRecord = JSON.parse(localRaw);
-            applyLoadedRecord(localRecord);
-        }
-    } catch(e) {}
+    // प्रारंभिक सेटअप और क्लाउड लोड
     syncCustomMinutesToTable();
     calculateAll();
-
-    // पेज लोड होते ही क्लाउड से ताज़ा डेटा लाएं
     loadDataFromCloud();
-    window.addEventListener('load', loadDataFromCloud);
 </script>
 </body>
 </html>
