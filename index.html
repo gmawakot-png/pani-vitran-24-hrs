@@ -495,7 +495,7 @@
     <div class="modal-card">
         <h3>🔐 एडमिन पासवर्ड दर्ज करें</h3>
         <div class="pass-input-box">
-            <input type="password" id="adminPassInput" placeholder="पासवर्ड लिखें" onkeydown="if(event.key==='Enter') verifyAdminPassword();">
+           <input type="text" id="adminPassInput" autocomplete="off" style="-webkit-text-security: disc;" placeholder="पासवर्ड लिखें" onkeydown="if(event.key==='Enter') verifyAdminPassword();">
             <button type="button" onclick="togglePassVisibility('adminPassInput')">👁️</button>
         </div>
         <button class="btn-action" onclick="verifyAdminPassword()">लॉगिन करें</button>
@@ -507,11 +507,11 @@
     <div class="modal-card">
         <h3>🔑 पासवर्ड बदलें</h3>
         <div class="pass-input-box">
-            <input type="password" id="oldPassInput" placeholder="पुराना पासवर्ड">
+            <input type="text" id="oldPassInput" autocomplete="off" style="-webkit-text-security: disc;" placeholder="पुराना पासवर्ड">
             <button type="button" onclick="togglePassVisibility('oldPassInput')">👁️</button>
         </div>
         <div class="pass-input-box">
-            <input type="password" id="newPassInput" placeholder="नया पासवर्ड">
+            <input type="text" id="newPassInput" autocomplete="off" style="-webkit-text-security: disc;" placeholder="नया पासवर्ड">
             <button type="button" onclick="togglePassVisibility('newPassInput')">👁️</button>
         </div>
         <button class="btn-action" onclick="submitNewPassword()">बदलें</button>
