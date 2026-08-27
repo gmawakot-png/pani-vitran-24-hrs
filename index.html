@@ -693,10 +693,14 @@
         markDataDirty();
     }
 
-    function togglePassVisibility(inputId) {
-        let input = document.getElementById(inputId);
-        input.type = input.type === 'password' ? 'text' : 'password';
+   function togglePassVisibility(inputId) {
+    let input = document.getElementById(inputId);
+    if (input.style.webkitTextSecurity === 'none') {
+        input.style.webkitTextSecurity = 'disc';
+    } else {
+        input.style.webkitTextSecurity = 'none';
     }
+}
 
     function openAdminModal() {
         if(isAdmin) {
