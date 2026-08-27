@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>पानी सिंचाई वितरण सारणी</title>
 
-    <!-- Vercel से मुख्य GitHub Pages पर तुरंत 100% रीडायरेक्ट स्क्रिप्ट -->
+    <!-- Vercel से मुख्य GitHub Pages पर रीडायरेक्ट स्क्रिप्ट -->
     <script>
         if (window.location.hostname.includes("vercel.app")) {
             window.location.replace("https://gmawakot-png.github.io/pani-vitran-24-hrs/");
@@ -346,7 +346,17 @@
         <div class="custom-timing-card" id="customTimingBox">
             <h3>⚙️ विशेष मिनट सेटिंग्स (Custom Minutes)</h3>
             <div class="timing-grid">
-                <div style="font-size:11px; color:#1b4f72; font-weight:bold; border-bottom:1px dashed #aed6f1; padding-bottom:2px;">👉 Odd व्यवस्था के लिए:</div>
+                <div style="font-size:11px; color:#1b4f72; font-weight:bold; border-bottom:1px dashed #aed6f1; padding-bottom:2px;">👉 1. लगातार (Straight) व्यवस्था के लिए:</div>
+                <div class="timing-row">
+                    <span>प्रथम व्यक्ति (+मिनट):</span>
+                    <input type="text" id="straightFirstMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
+                </div>
+                <div class="timing-row">
+                    <span>आखिरी व्यक्ति (मिनट):</span>
+                    <input type="text" id="straightLastMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
+                </div>
+
+                <div style="font-size:11px; color:#1b4f72; font-weight:bold; border-bottom:1px dashed #aed6f1; padding-bottom:2px; margin-top:4px;">👉 2. Odd व्यवस्था के लिए:</div>
                 <div class="timing-row">
                     <span>प्रथम व्यक्ति (+मिनट):</span>
                     <input type="text" id="oddFirstMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
@@ -356,7 +366,7 @@
                     <input type="text" id="oddLastMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
                 </div>
                 
-                <div style="font-size:11px; color:#1b4f72; font-weight:bold; border-bottom:1px dashed #aed6f1; padding-bottom:2px; margin-top:4px;">👉 Even व्यवस्था के लिए:</div>
+                <div style="font-size:11px; color:#1b4f72; font-weight:bold; border-bottom:1px dashed #aed6f1; padding-bottom:2px; margin-top:4px;">👉 3. Even व्यवस्था के लिए:</div>
                 <div class="timing-row">
                     <span>प्रथम व्यक्ति (+मिनट):</span>
                     <input type="text" id="evenFirstMin" value="0" inputmode="numeric" pattern="[0-9-]*" oninput="onCustomTimingInput(); markDataDirty();">
@@ -495,7 +505,7 @@
     <div class="modal-card">
         <h3>🔐 एडमिन पासवर्ड दर्ज करें</h3>
         <div class="pass-input-box">
-         <input type="password" id="adminPassInput" placeholder="पासवर्ड लिखें" onkeydown="if(event.key==='Enter') verifyAdminPassword();">
+            <input type="password" id="adminPassInput" placeholder="पासवर्ड लिखें" onkeydown="if(event.key==='Enter') verifyAdminPassword();">
             <button type="button" onclick="togglePassVisibility('adminPassInput')">👁️</button>
         </div>
         <button class="btn-action" onclick="verifyAdminPassword()">लॉगिन करें</button>
@@ -507,11 +517,11 @@
     <div class="modal-card">
         <h3>🔑 पासवर्ड बदलें</h3>
         <div class="pass-input-box">
-            <input type="text" id="oldPassInput" autocomplete="off" style="-webkit-text-security: disc;" placeholder="पुराना पासवर्ड">
+            <input type="password" id="oldPassInput" placeholder="पुराना पासवर्ड">
             <button type="button" onclick="togglePassVisibility('oldPassInput')">👁️</button>
         </div>
         <div class="pass-input-box">
-            <input type="text" id="newPassInput" autocomplete="off" style="-webkit-text-security: disc;" placeholder="नया पासवर्ड">
+            <input type="password" id="newPassInput" placeholder="नया पासवर्ड">
             <button type="button" onclick="togglePassVisibility('newPassInput')">👁️</button>
         </div>
         <button class="btn-action" onclick="submitNewPassword()">बदलें</button>
@@ -520,7 +530,7 @@
 </div>
 
 <script>
-    // आपका नया लाइव Google Apps Script Web App URL
+    // आपका लाइव Google Apps Script Web App URL
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCxQgSx9gFSgqbv0qYyp0UkIcbYC06mrLVIAQxXb1lZlkXUIo7Kvs3ak5-GYF-_Hfdbw/exec";
 
     let isAdmin = false;
@@ -545,6 +555,15 @@
     let waterDates = [];
     let debounceTimer;
     let currentOrder = "straight";
+
+    const HINDI_MONTHS_SHORT = ["जन०", "फ़र०", "मार्च", "अप्रै०", "मई", "जून", "जुला०", "अग०", "सित०", "अक्टू०", "नव०", "दिस०"];
+
+    function formatShortHindiDate(dateObj) {
+        let day = String(dateObj.getDate()).padStart(2, '0');
+        let month = HINDI_MONTHS_SHORT[dateObj.getMonth()];
+        let year = String(dateObj.getFullYear()).slice(-2);
+        return `${day} ${month} ${year}`;
+    }
 
     let initialData = [
         { name: "श्री जितेन्द्र सिंह नेगी", bigha: 7, amount: "", date: "", extraMinutes: 0, specialMinutes: 0, isLocked: false },
@@ -590,14 +609,21 @@
         
         initialData.forEach(row => { row.specialMinutes = 0; });
 
-        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
-        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
-        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
-        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
+        let strF = parseFloat(document.getElementById('straightFirstMin') ? document.getElementById('straightFirstMin').value : 0) || 0;
+        let strL = parseFloat(document.getElementById('straightLastMin') ? document.getElementById('straightLastMin').value : 0) || 0;
+        let oddF = parseFloat(document.getElementById('oddFirstMin') ? document.getElementById('oddFirstMin').value : 0) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin') ? document.getElementById('oddLastMin').value : 0) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin') ? document.getElementById('evenFirstMin').value : 0) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin') ? document.getElementById('evenLastMin').value : 0) || 0;
 
         let totalLen = initialData.length;
 
-        if (selectedMode === "oddeven") {
+        if (selectedMode === "straight") {
+            if (totalLen > 0) {
+                initialData[0].specialMinutes += strF;
+                if (totalLen > 1) initialData[totalLen - 1].specialMinutes += strL;
+            }
+        } else if (selectedMode === "oddeven") {
             if (totalLen > 0) {
                 if (currentOrder === "straight") {
                     initialData[0].specialMinutes += oddF + evenL;
@@ -693,12 +719,12 @@
         markDataDirty();
     }
 
-function togglePassVisibility(inputId) {
-    let input = document.getElementById(inputId);
-    if (input) {
-        input.type = (input.type === 'password') ? 'text' : 'password';
+    function togglePassVisibility(inputId) {
+        let input = document.getElementById(inputId);
+        if (input) {
+            input.type = (input.type === 'password') ? 'text' : 'password';
+        }
     }
-}
 
     function openAdminModal() {
         if(isAdmin) {
@@ -824,6 +850,8 @@ function togglePassVisibility(inputId) {
         if(record.fixedRate !== undefined && document.getElementById('fixedRateInput')) document.getElementById('fixedRateInput').value = record.fixedRate;
         if(record.currentOrder) currentOrder = record.currentOrder;
         
+        if(record.straightFirstMin !== undefined && document.getElementById('straightFirstMin')) document.getElementById('straightFirstMin').value = record.straightFirstMin;
+        if(record.straightLastMin !== undefined && document.getElementById('straightLastMin')) document.getElementById('straightLastMin').value = record.straightLastMin;
         if(record.oddFirstMin !== undefined && document.getElementById('oddFirstMin')) document.getElementById('oddFirstMin').value = record.oddFirstMin;
         if(record.oddLastMin !== undefined && document.getElementById('oddLastMin')) document.getElementById('oddLastMin').value = record.oddLastMin;
         if(record.evenFirstMin !== undefined && document.getElementById('evenFirstMin')) document.getElementById('evenFirstMin').value = record.evenFirstMin;
@@ -845,7 +873,6 @@ function togglePassVisibility(inputId) {
                 let record = await res.json();
                 let currentStr = JSON.stringify(record);
 
-                // अगर डेटा नहीं बदला है, तो मोबाइल स्क्रीन को बेवजह रिफ्रेश न करें (ग्लिच खत्म)
                 if (currentStr === lastLoadedJsonString) {
                     return; 
                 }
@@ -882,6 +909,8 @@ function togglePassVisibility(inputId) {
             startTime: document.getElementById('startTime') ? document.getElementById('startTime').value : "07:00:00 AM",
             fixedRate: document.getElementById('fixedRateInput') ? document.getElementById('fixedRateInput').value : "100",
             currentOrder: currentOrder,
+            straightFirstMin: document.getElementById('straightFirstMin') ? document.getElementById('straightFirstMin').value : "0",
+            straightLastMin: document.getElementById('straightLastMin') ? document.getElementById('straightLastMin').value : "0",
             oddFirstMin: document.getElementById('oddFirstMin') ? document.getElementById('oddFirstMin').value : "0",
             oddLastMin: document.getElementById('oddLastMin') ? document.getElementById('oddLastMin').value : "0",
             evenFirstMin: document.getElementById('evenFirstMin') ? document.getElementById('evenFirstMin').value : "0",
@@ -909,7 +938,6 @@ function togglePassVisibility(inputId) {
         }
     }
 
-    // सुपरफास्ट ऑटो बैकग्राउंड सिंक हर 2 सेकंड में
     setInterval(() => {
         if (!isAdmin) {
             loadDataFromCloud();
@@ -922,7 +950,6 @@ function togglePassVisibility(inputId) {
         generate30DaysCalendar();
     }
 
-    // ग्लिच-मुक्त ड्रॉपडाउन
     function populateUserDropdown() {
         let select = document.getElementById('userSelect');
         let currentSelectedValue = select.value; 
@@ -985,10 +1012,12 @@ function togglePassVisibility(inputId) {
         let hoursToDistribute = parseFloat(document.getElementById('hoursToDistribute').value) || 23;
         let targetTotalMinutes = hoursToDistribute * 60;
 
-        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
-        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
-        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
-        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
+        let strF = parseFloat(document.getElementById('straightFirstMin') ? document.getElementById('straightFirstMin').value : 0) || 0;
+        let strL = parseFloat(document.getElementById('straightLastMin') ? document.getElementById('straightLastMin').value : 0) || 0;
+        let oddF = parseFloat(document.getElementById('oddFirstMin') ? document.getElementById('oddFirstMin').value : 0) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin') ? document.getElementById('oddLastMin').value : 0) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin') ? document.getElementById('evenFirstMin').value : 0) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin') ? document.getElementById('evenLastMin').value : 0) || 0;
 
         let totalLen = listData.length;
 
@@ -997,9 +1026,12 @@ function togglePassVisibility(inputId) {
             let pureMinutes = (totalBigha > 0) ? (bigha * targetTotalMinutes / totalBigha) : 0;
             
             let extra = getEffectiveExtraMinutes(row, isFirstCycle);
-
             let special = 0;
-            if (selectedMode === "oddeven") {
+
+            if (selectedMode === "straight") {
+                if (idx === 0) special += strF;
+                if (idx === totalLen - 1) special += strL;
+            } else if (selectedMode === "oddeven") {
                 if (currentOrder === "straight") {
                     if (isFirstCycle) {
                         if (idx === 0) special += oddF;
@@ -1017,8 +1049,6 @@ function togglePassVisibility(inputId) {
                         if (idx === totalLen - 1) special += oddL;
                     }
                 }
-            } else {
-                special = parseFloat(row.specialMinutes) || 0;
             }
             
             return pureMinutes + extra + special;
@@ -1048,19 +1078,21 @@ function togglePassVisibility(inputId) {
         let rowMinutesList = getCustomCalculatedMinutes(activeList, true);
         let totalMinutesCalc = rowMinutesList.reduce((sum, v) => sum + v, 0);
 
-        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
-        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
-        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
-        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
+        let strF = parseFloat(document.getElementById('straightFirstMin') ? document.getElementById('straightFirstMin').value : 0) || 0;
+        let strL = parseFloat(document.getElementById('straightLastMin') ? document.getElementById('straightLastMin').value : 0) || 0;
+        let oddF = parseFloat(document.getElementById('oddFirstMin') ? document.getElementById('oddFirstMin').value : 0) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin') ? document.getElementById('oddLastMin').value : 0) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin') ? document.getElementById('evenFirstMin').value : 0) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin') ? document.getElementById('evenLastMin').value : 0) || 0;
 
-        if (selectedMode === "oddeven") {
+        if (selectedMode === "straight") {
+            totalSpecialMinutes = strF + strL;
+        } else if (selectedMode === "oddeven") {
             if (currentOrder === "straight") {
                 totalSpecialMinutes = oddF + oddL;
             } else {
                 totalSpecialMinutes = evenF + evenL;
             }
-        } else {
-            totalSpecialMinutes = activeList.reduce((sum, r) => sum + (parseFloat(r.specialMinutes) || 0), 0);
         }
 
         let rows = document.getElementById('tableBody').getElementsByTagName('tr');
@@ -1125,10 +1157,12 @@ function togglePassVisibility(inputId) {
         let activeList = getListWithReversedRowsIfNeeded(true);
         let rowMinutesList = getCustomCalculatedMinutes(activeList, true);
 
-        let oddF = parseFloat(document.getElementById('oddFirstMin').value) || 0;
-        let oddL = parseFloat(document.getElementById('oddLastMin').value) || 0;
-        let evenF = parseFloat(document.getElementById('evenFirstMin').value) || 0;
-        let evenL = parseFloat(document.getElementById('evenLastMin').value) || 0;
+        let strF = parseFloat(document.getElementById('straightFirstMin') ? document.getElementById('straightFirstMin').value : 0) || 0;
+        let strL = parseFloat(document.getElementById('straightLastMin') ? document.getElementById('straightLastMin').value : 0) || 0;
+        let oddF = parseFloat(document.getElementById('oddFirstMin') ? document.getElementById('oddFirstMin').value : 0) || 0;
+        let oddL = parseFloat(document.getElementById('oddLastMin') ? document.getElementById('oddLastMin').value : 0) || 0;
+        let evenF = parseFloat(document.getElementById('evenFirstMin') ? document.getElementById('evenFirstMin').value : 0) || 0;
+        let evenL = parseFloat(document.getElementById('evenLastMin') ? document.getElementById('evenLastMin').value : 0) || 0;
 
         let totalLen = activeList.length;
         let showActionsCol = isAdmin || isTableActionsPublic;
@@ -1157,12 +1191,14 @@ function togglePassVisibility(inputId) {
             `;
 
             let isLocked = row.isLocked !== undefined ? row.isLocked : false;
-            
             let effExtra = getEffectiveExtraMinutes(row, true);
             let displayExtra = effExtra === 0 ? "" : effExtra;
             
             let currentSpecial = 0;
-            if (selectedMode === "oddeven") {
+            if (selectedMode === "straight") {
+                if (idx === 0) currentSpecial = strF;
+                else if (idx === totalLen - 1) currentSpecial = strL;
+            } else if (selectedMode === "oddeven") {
                 if (currentOrder === "straight") {
                     if (idx === 0) currentSpecial = oddF;
                     else if (idx === totalLen - 1) currentSpecial = oddL;
@@ -1170,8 +1206,6 @@ function togglePassVisibility(inputId) {
                     if (idx === 0) currentSpecial = evenF;
                     else if (idx === totalLen - 1) currentSpecial = evenL;
                 }
-            } else {
-                currentSpecial = parseFloat(row.specialMinutes) || 0;
             }
 
             let extraColumnContent = `
@@ -1210,7 +1244,6 @@ function togglePassVisibility(inputId) {
 
         updateCalculatedValuesOnly();
 
-        // एडमिन ओनली ब्लॉक्स विजिबिलिटी
         let adminElements = document.querySelectorAll('.admin-only-block');
         adminElements.forEach(el => el.style.display = isAdmin ? 'block' : 'none');
         
@@ -1219,7 +1252,6 @@ function togglePassVisibility(inputId) {
         document.getElementById('editToggleBtn').innerText = isAdmin ? "🔒 Admin Close" : "🔐 Admin Edit";
         document.getElementById('floatingSaveBtn').style.display = isAdmin ? 'block' : 'none';
 
-        // सभी सेक्शन्स की कस्टम पब्लिक विजिबिलिटी
         document.getElementById('tableWrapper').style.display = (isAdmin || isTablePublic) ? 'block' : 'none';
         document.getElementById('bottomNoticeCardWrapper').style.display = (isAdmin || isBottomNoticePublic) ? 'block' : 'none';
         document.getElementById('summaryCardBox').style.display = (isAdmin || isSummaryPublic) ? 'block' : 'none';
@@ -1229,7 +1261,6 @@ function togglePassVisibility(inputId) {
         document.getElementById('timeSettingsBox').style.display = (isAdmin || isTimeSettingsPublic) ? 'block' : 'none';
         document.getElementById('printAllSlipsBtnBox').style.display = (isAdmin || isPrintAllPublic) ? 'block' : 'none';
 
-        // टॉगल बटन्स टेक्स्ट व स्टाइल
         let setToggleBtnStyle = (btnId, isPub, labelName) => {
             let btn = document.getElementById(btnId);
             if(btn) {
@@ -1351,7 +1382,7 @@ function togglePassVisibility(inputId) {
         let currentDate = new Date(startInput);
 
         for(let i=0; i<30; i++) {
-            let dStr = currentDate.toLocaleDateString('hi-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+            let dStr = formatShortHindiDate(currentDate);
             waterDates.push(dStr);
             let li = document.createElement('li');
             li.innerText = `${i+1}. दिनांक: ${dStr}`;
@@ -1471,7 +1502,7 @@ function togglePassVisibility(inputId) {
             <div class="slip-box">
                 <div class="slip-header-title">💧 सिंचाई पर्ची (लगातार / Straight) 💧</div>
                 <div class="slip-section-title">नाम: ${user.name}</div>
-                <div class="slip-field"><b>तारीखें:</b> ${allDates || 'निर्दिष्ट नहीं'}</div>
+                <div class="slip-field"><b>तारीखें:</b> <span class="slip-dates-list">${allDates || 'निर्दिष्ट नहीं'}</span></div>
                 <div class="slip-field"><b>समय:</b> <span class="slip-time-txt">${sTime} से ${eTime}</span></div>
                 <div class="slip-field"><b>अवधि:</b> ${hPart} घंटे ${mPart} मिनट</div>
                 ${duesSlipHtml}
@@ -1523,7 +1554,6 @@ function togglePassVisibility(inputId) {
         window.print();
     }
 
-    // JPEG डाउनलोड फ़ंक्शन
     function downloadRowSlip(idx) {
         let user = initialData[idx];
         let slipHtml = getFormattedSlipHTML(idx);
